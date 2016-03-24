@@ -1,25 +1,38 @@
+var _io;
 module.exports = function(io){
+	_io = io;
 	io.on('connection', function(client){
-		console.log(client.id + " connected");
-		client.on('create', createGame(io));
+		client.on('create', function(name){
+			createGame(name, client);
+		});
 	});
 }
 
-function createGame(io){
-	var name = '/game-'+this.id;
-	var nsp = io.of(name);
-	nsp.on('connection', function(){
-		gameConnect(nsp, name);
-	});
+function createGame(gamename, socket){
+	var name = '/game-'+gamename;
+	if(_io[name] == undefined){
+		var nsp = _io.of(name);
+		nsp.gamename = gamename;
+
+		nsp.on('connection', function(client){
+			var clients = nsp.server.eio.clientsCount;
+			if(clients == 1) {
+				console.log("HOST FOUND");
+				nsp.host = client.id;
+			}
+
+			gameConnect(nsp, name, client);
+		});
+		socket.emit('open', gamename);
+	} else socket.emit('taken'); 
 }
 
-function gameConnect(nsp, name){
+function gameConnect(nsp, name, socket){
 	
 	socket.on('disconnect', function(){
-		if(socket.id == this.host){
-			console.log('host left the game');
-
+		if(this.id == nsp.host){
+			nsp.emit('hostLeft');
+			delete _io.nsps[nsp.name];
 		}
-		console.log(socket.id + " left the game");
 	});
 }
