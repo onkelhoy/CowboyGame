@@ -8,7 +8,7 @@ var game = require('./GameServer')(io);
 
 app.use('/', express.static(__dirname + '/public'));
 app.get('/', function(req, res){
-	res.sendfile('html/create.html');
+	res.render()
 });
 app.get('/game', function(req, res){
 	res.sendfile('html/game.html');
