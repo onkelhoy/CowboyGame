@@ -1,0 +1,14 @@
+{
+  "name": "cowboygame",
+  "version": "1.0.0",
+  "description": "simple online dual shooter 2d game in a cowboy scenario",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Henry Pap",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io": "^1.4.5"
+  }
+}
