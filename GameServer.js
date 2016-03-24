@@ -34,10 +34,21 @@ function createGame(gamename, socket){
 }
 
 function gameConnect(nsp, name, socket){
+
 	socket.on('connectToGame', function(name){
-		//tell host 
-		console.log('welcome player ' + name);
-		socket.broadcast.emit('newPlayer', name);
+		//tell host
+		var clients = nsp.server.eio.clientsCount;
+		var pos = Math.round(Math.random());
+		if(clients == 2){
+			pos = 1 - nsp.hostPos;
+			socket.broadcast.emit('newPlayer', {name: name, pos: pos});
+			socket.emit('host', {name: nsp.hostName, pos: nsp.hostPos});
+		}
+		else {
+			nsp.hostName = name;
+			nsp.hostPos = pos;
+		}
+		socket.emit('gameconnect', {name: name, pos: pos});
 	});
 	socket.on('disconnect', function(){
 		if(this.id == nsp.host){

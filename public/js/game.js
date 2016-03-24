@@ -1,17 +1,17 @@
 /***************************************************************
 		GAME VARIABLES
 ***************************************************************/
-var c, ctx, w, h, USERNAME;
-var player;
+var c, ctx, w, h, USERNAME, POS;
+var player, enemy = null;
 
 /***************************************************************
 		GAME INIT
 ***************************************************************/
-
-function init(){
+function connect(){
 	hidePop();
-	USERNAME = $('#username').val();
-	socket.emit('connectToGame', USERNAME);
+	socket.emit('connectToGame', $('#username').val());
+}
+function init(){
 	c = document.getElementById("c");
 	ctx = c.getContext("2d");
 	resetCanvas();
@@ -34,15 +34,18 @@ function resetCanvas (e) {
 		GAME FUNCTIONS
 ***************************************************************/
 function load(){
-	player = new Player(new Vector(500, 500), USERNAME);
+	player = new Player(POS, USERNAME);
 }
 
 function update(){
-
+	player.update();
+	if(enemy != null) enemy.update();
 }
 
 function render(){
 	ctx.clearRect(0, 0, w, h);
+	player.render();
+	if(enemy != null) enemy.render();
 }
 
 function gameLoop(){
