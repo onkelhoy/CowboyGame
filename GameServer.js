@@ -17,8 +17,14 @@ function createGame(gamename, socket){
 		nsp.on('connection', function(client){
 			var clients = nsp.server.eio.clientsCount;
 			if(clients == 1) {
-				console.log("HOST FOUND");
 				nsp.host = client.id;
+			}
+			else if(clients == 2){
+				//tell the host
+			}
+			else {
+				//dont connect!
+				client.emit('full');
 			}
 
 			gameConnect(nsp, name, client);

@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="css/game.css">
 <canvas id="game"></canvas>
 <p>hej</p>
 
@@ -6,9 +7,15 @@
 	var link = '/game-<%= name %>';
 	var socket = io(link);
 	socket.on('hostLeft', function(){
-		alert('Host left the game!');
-		window.location.href = "/gameLoss";
+		showError('Host left the game!', function(){
+			window.location.href = "/gameLoss";
+		});
 	});
+	socket.on('full', function(){
+		showError('Game is full', function(){
+			window.location.href = "/";
+		});
+	})
 	setTimeout(function() {
 		if(socket.disconnected){
 			window.location.href = "/gameLoss";

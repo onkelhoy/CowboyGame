@@ -1,7 +1,13 @@
 <html>
 	<head>
 		<title><%= title %></title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+		<link href='https://fonts.googleapis.com/css?family=Raleway:400,300' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="css/basic.css">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 	</head>
 	<body>
 		<% if(type == 'create') { %>
@@ -15,5 +21,7 @@
 		<% if(type == 'gameLoss') { %>
 			<% include partials/gameLoss.html %>
 		<% } %>
+
+		<% include partials/popup.html %>
 	</body>
 </html>

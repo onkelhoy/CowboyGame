@@ -1,0 +1,32 @@
+#popup {
+    display: none;
+    width: 100%;
+    left: 0;
+    top: 0;
+    height: 100%;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 15;
+}
+#popup > div {
+    background-color: white;
+    margin-top: 60px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px 1px black;
+}
+
+
+#popup > div > div {
+    display: none;
+    text-align: left;
+}
+.bg-danger {
+    padding: 15px;
+}
+.bg-success {
+    padding: 15px;
+}
+.bg-warning {
+    padding: 15px;
+}
