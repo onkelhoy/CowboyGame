@@ -34,7 +34,11 @@ function createGame(gamename, socket){
 }
 
 function gameConnect(nsp, name, socket){
-	
+	socket.on('connectToGame', function(name){
+		//tell host 
+		console.log('welcome player ' + name);
+		socket.broadcast.emit('newPlayer', name);
+	});
 	socket.on('disconnect', function(){
 		if(this.id == nsp.host){
 			nsp.emit('hostLeft');

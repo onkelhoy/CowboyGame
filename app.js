@@ -26,5 +26,7 @@ app.get('*', function(req, res){
 	res.redirect('/');
 });
 
-
-server.listen(3000);
+var port = process.env.PORT || 3000;
+server.listen(port, function(){
+	console.log('listening on port: ' + port);
+});
