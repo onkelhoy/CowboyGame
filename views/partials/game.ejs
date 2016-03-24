@@ -1,0 +1,20 @@
+<canvas id="game"></canvas>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	var link = '/game-<%= name %>';
+	var socket = io(link);
+	setTimeout(function() {
+		if(socket.disconnected){
+			alert(link);
+			window.location.href = "/gameLoss";
+		}
+		else {
+			console.log('connected to game');
+		}
+	}, 500);
+
+</script>
+<script src="js/lib.js"></script>
+<script src="js/game.js"></script>

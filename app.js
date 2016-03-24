@@ -6,17 +6,31 @@ var io = require('socket.io')(server);
 var game = require('./GameServer')(io);
 
 
+app.set('views',__dirname + '/views');
+app.set('view engine', 'ejs');
 app.use('/', express.static(__dirname + '/public'));
+
 app.get('/', function(req, res){
-	res.render()
+	res.render('defualt', {
+		type: 'create',
+		title: 'create'
+	});
 });
-app.get('/game', function(req, res){
-	res.sendfile('html/game.html');
+app.get('/game/:name', function(req, res){
+	res.render('defualt', {
+		type: 'game',
+		title: 'Game - '+req.params.name,
+		name: req.params.name
+	});
 });
 app.get('/gameLoss', function(req, res){
-	res.sendfile('html/gameLoss.html');
+	res.render('defualt', {
+		type: 'gameLoss',
+		title: 'gameLoss'
+	});
 });
 app.get('*', function(req, res){
+	console.log('404');
 	res.redirect('/');
 });
 
