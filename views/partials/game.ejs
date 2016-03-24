@@ -1,13 +1,16 @@
 <canvas id="game"></canvas>
-
+<p>hej</p>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 	var link = '/game-<%= name %>';
 	var socket = io(link);
+	socket.on('hostLeft', function(){
+		alert('Host left the game!');
+		window.location.href = "/gameLoss";
+	});
 	setTimeout(function() {
 		if(socket.disconnected){
-			alert(link);
 			window.location.href = "/gameLoss";
 		}
 		else {

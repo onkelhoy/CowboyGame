@@ -30,7 +30,6 @@ app.get('/gameLoss', function(req, res){
 	});
 });
 app.get('*', function(req, res){
-	console.log('404');
 	res.redirect('/');
 });
 
