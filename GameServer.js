@@ -13,13 +13,13 @@ function createGame(gamename, socket){
 	if(_io[name] == undefined){
 		var nsp = _io.of(name);
 		nsp.gamename = gamename;
-
+		nsp.players = 0;
 		nsp.on('connection', function(client){
-			var clients = nsp.server.eio.clientsCount;
-			if(clients == 1) {
+			nsp.players++;
+			if(nsp.players == 1) {
 				nsp.host = client.id;
 			}
-			else if(clients == 2){
+			else if(nsp.players == 2){
 				//tell the host
 			}
 			else {
@@ -37,7 +37,7 @@ function gameConnect(nsp, name, socket){
 
 	socket.on('connectToGame', function(name){
 		//tell host
-		var clients = nsp.server.eio.clientsCount;
+		var clients = nsp.players;
 		var pos = Math.round(Math.random());
 		if(clients == 2){
 			pos = 1 - nsp.hostPos;
@@ -55,5 +55,15 @@ function gameConnect(nsp, name, socket){
 			nsp.emit('hostLeft');
 			delete _io.nsps[nsp.name];
 		}
+		else {
+			nsp.players--;
+			this.broadcast.emit('playerLeave');
+		}
+	});
+	socket.on('standDown', function(){
+		socket.broadcast.emit('standDown');
+	});
+	socket.on('standUp', function(){
+		socket.broadcast.emit('standUp');
 	});
 }

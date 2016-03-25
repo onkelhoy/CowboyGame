@@ -1,19 +1,23 @@
-var Character = function(pos){ //1 - hostPos -> 1 or 0 
+var Character = function(name, pos){ //1 - hostPos -> 1 or 0 
 	var character = new Object(this);
 	var x = window.innerWidth/5;
 	var diffx = x * 3;
-	if(x > 200){
-		x = 200;
-		diffx = 600;
+	var startx = 0;
+	if(x > 300){
+		x = 300;
+		diffx = 900;
+		startx = window.innerWidth/2 - 450;
 	}
 
-	this.orginalPos = new Vector(x + diffx * pos, window.innerHeight - 100);
+	this.dir = pos;
+	this.orginalPos = new Vector(x + diffx * pos + startx, window.innerHeight - 200);
 	this.rec = new Rectangle(this.orginalPos.x - 40, this.orginalPos.y - 40, 80, 80);
 	this.ammo = 6;
 	this.standedUp = false;
 	this.canShoot = true;
 	this.stand = false;
 	this.space = 0;
+	this.name = name;
 
 	this.update = function(){
 		if(this.space == 1 && !this.standedUp){
@@ -47,7 +51,8 @@ var Character = function(pos){ //1 - hostPos -> 1 or 0
 			this.rec.h = 160;
 
 			if(this.canShoot) {
-				console.log('PANG');
+				//positioning the bullet
+				new Bullet(new Vector(this.rec.x + 80 * (1 - this.dir), this.rec.y + 20), (this.dir == 0 ? 1 : -1));
 				this.canShoot = false;
 				this.ammo--;
 			}
@@ -58,6 +63,11 @@ var Character = function(pos){ //1 - hostPos -> 1 or 0
 
 	this.render = function(){
 		this.rec.render('black');
+		ctx.beginPath();
+			ctx.font="20px Georgia";
+			ctx.fillStyle = "#333";
+			ctx.fillText(this.name, this.orginalPos.x - ctx.measureText(this.name).width/2, this.orginalPos.y + 120);
+		ctx.closePath();
 	}
 
 	return character;

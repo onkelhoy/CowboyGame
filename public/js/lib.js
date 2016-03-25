@@ -68,7 +68,10 @@ var Line = function(v1, v2){
 	var line = new Object(this);
 	line.v1 = new Vector(v1.x, v1.y);
 	line.v2 = new Vector(v2.x, v2.y);
-
+	line.update = function(a, b){
+		this.v1 = a;
+		this.v2 = b;
+	};
 	line.getLength = function(){
 		var dx = line.v1.x - line.v2.x,
 			dy = line.v1.y - line.v2.y;
@@ -105,8 +108,8 @@ var Line = function(v1, v2){
 		context.beginPath();
 			context.moveTo(line.v1.x, line.v1.y);
 			context.lineTo(line.v2.x, line.v2.y);
-			context.strokeStyle = "blue";
-			context.lineWidth = 5;
+			context.strokeStyle = "#333";
+			context.lineWidth = 1;
 			context.stroke();
 		context.closePath();
 	};

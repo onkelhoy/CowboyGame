@@ -46,6 +46,7 @@ function render(){
 	ctx.clearRect(0, 0, w, h);
 	player.render();
 	if(enemy != null) enemy.render();
+	renderBullets();
 }
 
 function gameLoop(){

@@ -2,7 +2,7 @@ var Enemy = function(pos, name){
 	var enemy = new Object(this);
 
 	this.name = name;
-	this.character = new Character(pos);
+	this.character = new Character(name, pos);
 
 	this.update = function(){
 		this.character.update();
