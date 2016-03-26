@@ -25,8 +25,44 @@ function renderBullets(){
 	for(var i = 0; i < Bullets.length; i++){
 		Bullets[i].update();
 		Bullets[i].render();
+		if(enemy != null){
+			bulletCol(Bullets[i].line);
+		}
 		if(Bullets[i].dead){
 			Bullets.splice(i, 1);
 		}
+	}
+}
+
+function bulletCol(line){
+	var prec = player.character.rec,
+		erec = player.character.rec,
+		p, e;
+	if(player.pos == 1){//player right
+		p = getState(false, line, prec);
+		e = getState(true, line, erec);
+	}
+	else { //player left
+		p = getState(true, line, prec);
+		e = getState(false, line, erec);
+	}
+
+
+	if(p){
+		socket.emit('enemyWin');
+		$('#winner').text(enemy.name);
+		resetGame();
+	}
+	if(e){
+		socket.emit('playerWin');
+		$('#winner').text(player.name);
+		resetGame();
+	}
+}
+function getState(left, line, rec){
+	if(left){
+		return line.v1.x <= rec.x + rec.w && line.v2.x >= rec.x && line.v1.y >= rec.y
+	} else {
+		return line.v1.x >= rec.x && line.v2.x <= rec.x + rec.w && line.v1.y >= rec.y;
 	}
 }

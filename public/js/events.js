@@ -4,7 +4,7 @@ var keys = {
 
 var touchable = 'createTouch' in document,
 	touches = [], // array of touch vectors
-	firstTouch = null;
+	firstTouch = -1;
 	
 function Events () {
 
@@ -14,10 +14,6 @@ function Events () {
 	window.onresize = resetCanvas;  
 
 	mouseAndKeyboardEvents();
-
-	
-	window.onorientationchange = resetCanvas;  
-	window.onresize = resetCanvas;
 
 	if(touchable){
 		//tab to shoot
@@ -34,18 +30,33 @@ function mouseAndKeyboardEvents () {
 }
 function onTouchStart(e) {
  
-	if(keys.space == 0){
-		keys.space == 1;
-		//add to first touch
+	if(firstTouch<0) {
+		var touch =e.changedTouches[0]; 
+		
+		firstTouch = touch.identifier; 
+		if(keys.space == 0){
+			keys.space = 1;
+		}
 	}
 	touches = e.touches; 
 }
-
  
 function onTouchEnd(e) { 
    
    	touches = e.touches; 
-	//if first touch id then keys.space = 0
+   	if(firstTouch >-1){
+		for(var i = 0; i<e.changedTouches.length; i++){
+			var touch =e.changedTouches[i]; 
+			if(firstTouch == touch.identifier)
+			{
+				firstTouch = -1; 
+				if(keys.space == 1){
+					keys.space = 0;
+				}
+				break; 		
+			}		
+		}
+	}
 }
 
 function keyDown (key) {

@@ -52,7 +52,7 @@ var Character = function(name, pos){ //1 - hostPos -> 1 or 0
 
 			if(this.canShoot) {
 				//positioning the bullet
-				new Bullet(new Vector(this.rec.x + 80 * (1 - this.dir), this.rec.y + 20), (this.dir == 0 ? 1 : -1));
+				new Bullet(new Vector(this.rec.x - 20 + 120 * (1 - this.dir), this.rec.y + 20), (this.dir == 0 ? 1 : -1));
 				this.canShoot = false;
 				this.ammo--;
 			}

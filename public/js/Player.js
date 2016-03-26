@@ -3,6 +3,7 @@ var Player = function(pos, name){
 
 	this.name = name;
 	this.current = 0;
+	this.pos = pos;
 	this.character = new Character(name, pos);
 
 	this.update = function(){

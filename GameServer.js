@@ -66,4 +66,10 @@ function gameConnect(nsp, name, socket){
 	socket.on('standUp', function(){
 		socket.broadcast.emit('standUp');
 	});
+	socket.on('enemyWin', function(){
+		socket.broadcast.emit('youWin');
+	});
+	socket.on('playerWin', function(){
+		socket.broadcast.emit('enemyWin');
+	});
 }

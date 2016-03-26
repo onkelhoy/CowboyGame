@@ -27,3 +27,11 @@ function showPopup(index){
 	$('#popup > div').children().eq(0).show();
 	$('#popup > div').children().eq(index).show();
 }
+function showStaticPopup(index){
+	$('#staticPopup').show();
+	$('#staticPopup > div > div').hide();
+	$('#staticPopup > div').children().eq(index).show();
+}
+function hideStaticPopup(){
+	$('#staticPopup').hide();
+}
