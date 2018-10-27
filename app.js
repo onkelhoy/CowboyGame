@@ -1,32 +1,21 @@
-var express = require('express');
-var app = express();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
+let express = require('express')
+let app = express()
 
-var gameServer = require('./GameServer')(io);
-var createRouter = require('./routes/create');
-var gameRouter = require('./routes/game');
+app.use('/js', express.static('./game/lib'))
+app.use('/content', express.static('./game/content'))
+app.set('port', process.env.PORT || 3000)
 
+//app.use('/', createRouter)
+//app.use('/game', gameRouter)
 
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
-app.use('/', express.static('public'));
+app.get('/', (req, res) => {
+	res.sendFile(__dirname + '/game/game.html')
+})
 
-app.use('/', createRouter);
-app.use('/game', gameRouter);
-
-
-app.get('/gameLoss', function(req, res){
-	res.render('defualt', {
-		type: 'gameLoss',
-		title: 'gameLoss'
-	});
-});
 app.get('*', function(req, res){
-	res.redirect('/');
-});
+	res.status(404).end('404 page not found')
+})
 
-var port = process.env.PORT || 3000;
-server.listen(port, function(){
-	console.log('listening on port: ' + port);
-});
+app.listen(app.get('port'), function () {
+	console.log('listen on port ' + app.get('port'))
+})

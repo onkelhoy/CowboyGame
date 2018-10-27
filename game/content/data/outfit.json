@@ -1,0 +1,7 @@
+{
+  "parts": [
+    "upper arm", "upper leg", "lower leg",
+    "lower arm", "pistol arm", "elbow",
+    "knee", "torso", "head", "foot"
+  ]
+}
