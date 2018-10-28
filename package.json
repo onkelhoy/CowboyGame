@@ -1,17 +1,28 @@
 {
   "name": "cowboygame",
   "version": "1.0.0",
-  "description": "simple online dual shooter 2d game in a cowboy scenario",
-  "main": "app.js",
+  "description": "Cowboy dual game, uses webrtc for speed",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onkelhoy/CowboyGame.git"
+  },
+  "keywords": [
+    "cowboy",
+    "dual",
+    "firends",
+    "game",
+    "multiplayer",
+    "online"
+  ],
   "author": "Henry Pap",
-  "license": "MIT",
-  "dependencies": {
-    "ejs": "^2.4.1",
-    "express": "^4.13.4",
-    "http": "0.0.0",
-    "socket.io": "^1.4.5"
-  }
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/onkelhoy/CowboyGame/issues"
+  },
+  "homepage": "https://github.com/onkelhoy/CowboyGame#readme"
 }

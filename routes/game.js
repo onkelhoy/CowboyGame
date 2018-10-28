@@ -1,22 +1,21 @@
-(function(){
-	"user strict";
-    var express = require('express');
-    var routes = express.Router();
+const express = require('express')
+const path    = require('path')
+const router  = express.Router()
 
 
-	routes.use('/', express.static('public'));
-	routes.get('/', function(req, res){
-		res.redirect('/');
-	});
+router.use('/js', express.static(path.resolve(__dirname, '../dist/game/lib')))
+router.use('/content', express.static(path.resolve(__dirname, '../dist/game/content')))
 
-	routes.get('/:name', function(req, res){
+router.use('/', (req, res, next) => {
+  if (req.session.game) next()
+  else res.redirect('/')
+})
+// have both names at this point !
+router.get('/', (req, res) => {
+  // res.sendFile(path.resolve(__dirname, '../dist/game/game.html'))
+  res.render('game', {
+    title: 'A vs B' // put in names instead !
+  })
+})
 
-		res.render('defualt', {
-			type: 'game',
-			title: 'Game - '+req.params.name,
-			name: req.params.name
-		});
-	});
-
-    module.exports = routes;
-}());
+module.exports = router
