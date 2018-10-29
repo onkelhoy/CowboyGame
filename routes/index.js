@@ -15,6 +15,9 @@ router.get(/\/credits?/i, (req, res) => {
 })
 router.use('/', require('./game.js'))
 
+router.get('*', (req, res) => {
+  res.end('404 not found')
+})
 
 
 module.exports = router
