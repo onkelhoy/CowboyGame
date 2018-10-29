@@ -17,6 +17,9 @@ class CowBoy {
       b: {x: 0, y: 0}
     }
   }
+  set x (v) {
+    this.body.xpos = v
+  }
 
   // when cowboy should duck (decreases updownratio)
   down () {
@@ -89,7 +92,7 @@ class CowBoy {
     this.renderFrom(this.updownratio / this.max, this.shootratio)
   }
   ragMode (bullet_line) {
-    GAMEOVER = true
+    //GAMEOVER = true
     let dx = bullet_line.b.x - bullet_line.a.x,
         dy = bullet_line.b.y - bullet_line.a.y
     dx *= 0.5

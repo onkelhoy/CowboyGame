@@ -2,7 +2,8 @@ const GRAVITY = .2, BOUNCE = .9, FRICTION = .99
 let OUTFIT_DATA, SOUND_LIBRARY, PROPS
 let outfits = ['simple'], color = 'cornflowerblue', dustController
 let backgroundIMG
-let cowboyA, cowboyB, GAMEOVER = false
+let cowboyA, cowboyB
+let GAMEOVER = false, STARTED = false, countdown = 3,  SCALE = 1, GROUND_LEVEL = 100// countdown
 
 let B = { updownratio: 0, shootratio: 0 }
 
@@ -18,8 +19,12 @@ function preload () {
   outfits = loadImages(outfits, OUTFIT_DATA)
 }
 function setup () {
-  createCanvas(window.innerWidth, window.innerHeight)
+  INITCONNECT()
+  width = window.innerWidth
+  height = window.innerHeight
+  createCanvas(max(width, height), min(width, height))
   Events(document.querySelector('canvas'))
+  SCALE = map(width, 300, 1500, 0.35, 1)
 
   PROPS = {
     house: loadImage('/content/images/props/house.svg'),
@@ -34,9 +39,15 @@ function setup () {
   SOUND_LIBRARY = {
     background: new Howl({
       src: '/content/audio/ZitronSound - Wild West.mp3',
-      // autoplay: true,
+      //autoplay: true,
       loop: true,
       volume: 0.1,
+    }),
+    menu: new Howl({
+      src: '/content/audio/ZitronSound - Lonely Cowboy.mp3',
+      //autoplay: true,
+      loop: true,
+      volume: 0.4,
     }),
     gun: {
       play: () => {
@@ -67,13 +78,13 @@ function setup () {
   }
 
   dustController = new Dust()
-  cowboyA = new CowBoy(170, height - 25, outfits.simple)
-  cowboyB = new CowBoy(width - 170, height - 25, outfits.simple, -1)
+  cowboyA = new CowBoy(170*SCALE, height - 25*SCALE, outfits.simple)
+  cowboyB = new CowBoy(width - 170*SCALE, height - 25*SCALE, outfits.simple, -1)
   BulletManager.calcAngle()
-}
 
-function draw () {
-  if (!GAMEOVER) update()
+}
+function draw () { // locally can start... but hey
+  if (!GAMEOVER && STARTED) update()
   else {
     cowboyA.down()
     cowboyB.down()
@@ -85,26 +96,26 @@ function draw () {
   BulletManager.Render()
   cowboyA.render()
   cowboyB.renderFrom(B.updownratio, B.shootratio)
-  image(PROPS.house, -10, height - PROPS.house.height - 5)
+  rimage(PROPS.house, -10*SCALE, height - PROPS.house.height*SCALE - 5)
 
   push()
     translate(width, 0)// - PROPS.house.width + 10, 0)
     scale(-1, 1)
-    image(PROPS.house, 0, height - PROPS.house.height - 5)
+    rimage(PROPS.house, 0, height - PROPS.house.height*SCALE - 5)
   pop()
 
   push()
-    translate(290, height - 22 - PROPS.barrel.height*.4)
+    translate(290*SCALE, height - 22*SCALE - PROPS.barrel.height*SCALE*.4)
     scale(.4)
-    image(PROPS.barrel, 0, 0)
+    rimage(PROPS.barrel, 0, 0)
   pop()
   push()
-    translate(width - 300 - PROPS.barrel.width*.4, height - 22 - PROPS.barrel.height*.4)
+    translate(width - 300*SCALE - PROPS.barrel.width*SCALE*.4, height - 22*SCALE - PROPS.barrel.height*SCALE*.4)
     scale(.4)
-    image(PROPS.barrel, 0, 0)
+    rimage(PROPS.barrel, 0, 0)
   pop()
 
-  image(PROPS.kaktus.img, PROPS.kaktus.pos, height - 9 - PROPS.kaktus.img.height)
+  rimage(PROPS.kaktus.img, PROPS.kaktus.pos, height - 9*SCALE - PROPS.kaktus.img.height*SCALE)
   dustController.render(PROPS.dust)
 
   // ground
@@ -115,6 +126,17 @@ function draw () {
 
 
 // ######################################
+function COUNTDOWN (time) {
+  if (countdown === 0) {
+    document.querySelector('section.A').classList.remove('show')
+    document.querySelector('section.B').classList.remove('show')
+    STARTED = true
+    return
+  }
+  // update Countdown DOM
+  countdown--
+  setInterval(() => COUNTDOWN(2000), time)
+}
 // ######################################
 
 // UDATE FUNCTION

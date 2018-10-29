@@ -1,0 +1,153 @@
+html, body {
+  padding: 0;
+  margin: 0;
+}
+@font-face {
+    font-family: cowboy;
+    src: url(/content/font/western.otf);
+}
+
+div.namePopup {
+  width: 100vw;
+  height: 100vh;
+  background-color: cornflowerblue;
+  position: relative;
+  z-index: 20;
+  display: grid;
+
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 50px 1fr;
+  grid-template-areas:
+    "t t t"
+    "l c r"
+    "g g g";
+
+}
+div.namePopup > div {
+  grid-area: c;
+  background-color: chocolate;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 5px;
+}
+div.namePopup > div > input {
+  padding: 0 6px;
+  width: 60%;
+  height: 40px;
+  background-color: rgba(0,0,0,0.1);
+  box-shadow: inset 0 0 20px rgba(0,0,0,.3);
+  border: 1px rgba(0,0,0,.2) solid;
+  border-radius: 3px;
+  color: #ddd;
+  font-size: 16pt;
+  margin-right: 8px;
+}
+div.namePopup > div > button {
+  width: 60px;
+  height: 42px;
+
+  background-color: rgba(100, 149, 237,0.8);
+  box-shadow: inset 0 0 20px rgba(0,0,0,.3);
+  border: 1px rgba(0,0,0,.2) solid;
+  border-radius: 3px;
+  color: #ddd;
+  font-size: 16pt;
+
+  padding: 0;
+  margin: 0;
+}
+div.namePopup > div > button:focus {
+  outline: none;
+  background-color: cornflowerblue;
+}
+div.namePopup > div > input:focus {
+  outline: none;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.container {
+  position: relative;
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  grid-template-columns: 1fr 4fr 1fr 4fr 1fr;
+  grid-template-rows: 2fr 3fr;
+  grid-template-areas:
+    "t t t t t"
+    "l A c B r";
+}
+
+section {
+  font-family: cowboy;
+  color: rgba(0,0,0,0.6);
+  position: relative;
+  display: grid;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr .5fr .5fr 1fr;
+
+  transition: all .5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  opacity: 0;
+
+  grid-template-areas:
+    "t t t"
+    "l h r"
+    "l p r"
+    "b b b";
+}
+section > img {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  height: 100%;
+}
+section > p {
+  z-index: 2;
+  padding: 0;
+  grid-area: p;
+  margin: 0;
+  font-size: 1.6vw;
+}
+section > h2 {
+  z-index: 2;
+  grid-area: h;
+  margin: 0;
+  font-size: 2vw;
+}
+section.A {
+  grid-area: A;
+  left: -500px;
+}
+section.A.show {
+  left: 0;
+  opacity: 1;
+}
+section.B {
+  grid-area: B;
+  right: -500px;
+}
+section.B.show {
+  right: 0;
+  opacity: 1;
+}

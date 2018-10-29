@@ -2,11 +2,12 @@ const express     = require('express')
 const session     = require('express-session')
 const dotenv      = require('dotenv')
 const http        = require('http')
+const path        = require('path')
 const app    = express()
 const server = http.createServer(app)
 
+module.exports = server
 // init the websocket server
-require('./routes/websocket.server.js')(server)
 dotenv.config()
 
 app.enable('strict-routing') // because I care ^^
@@ -20,7 +21,7 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   cookie: {
-    maxAge: 300000 // 5min
+    maxAge: 10000 // 10s
   }
 }))
 

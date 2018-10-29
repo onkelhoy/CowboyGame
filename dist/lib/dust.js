@@ -2,7 +2,7 @@ class DustBall {
   constructor (direction) {
     // console.log(direction)
     this.x = -100 * direction + (1 - (direction+1)/2) * width
-    this.speed = (Math.random() * 3 + 1) * direction
+    this.speed = (Math.random() * 2.5 + 2) * direction
     this.size = Math.random() * .4 + .6
   }
 

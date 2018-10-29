@@ -11,19 +11,21 @@ block scripts
   script(src="/js/Cowboy.js"  charset="utf-8")
   script(src="/js/Ragdoll.js" charset="utf-8")
   script(src="/js/main.js"    charset="utf-8")
+  script(src='/js/connect.js' charset='utf-8')
+  script(src='/js/Peer.js'    charset='utf-8')
+  script.
+    const ID = '#{id}'
 
 block styles
-  style(media="screen" type='text/css').
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-
-      -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-         -khtml-user-select: none; /* Konqueror HTML */
-           -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      supported by Chrome and Opera */
-    }
+  link(rel='stylesheet' href='/css/main.css')
+    
+block content
+  div.namePopup
+    div
+      input(type='text' placeholder='Bob Singer')
+      button(onclick='NameClick()') start
+  div.container
+    section.A
+      include sign.pug
+    section.B
+      include sign.pug

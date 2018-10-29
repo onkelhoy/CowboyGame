@@ -29,6 +29,23 @@ class Body {
 
     this.MODE = 'normal'
   }
+  set xpos (v) {
+    this.x = v
+    this.legsMain = new Bone(-Math.PI/2 - 0.005, 80, null, v, this.y)
+    this.bodyMain = new Bone(-Math.PI/2 + 0.1, 100, null, v, this.y)
+    this.armMain = new Bone(Math.PI/5, 50, null, v, this.y)
+    this.elbow = new Bone(0, 30, this.armMain)
+    this.elbow.sangle = 2*Math.PI/3
+
+    this.torso = new Bone(-Math.PI/2, 60, null, v, this.y)
+    this.RarmIK = new IKRig(v, this.y, 2, 38)
+    this.LarmIK = new IKRig(v, this.y, 2, 34)
+    this.RlegIK = new IKRig(v, this.y, 2, 40)
+    this.LlegIK = new IKRig(v + 10, this.y, 2, 40)
+    this.head = new Bone(-Math.PI/2, 75, this.torso)
+    this.Lfoot = new Bone(0, 10, null, v, this.y)
+    this.Rfoot = new Bone(0, 10, null, v, this.y)
+  }
 
   update () {
     let x = this.legsMain.endx,

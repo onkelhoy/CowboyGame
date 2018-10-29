@@ -44,6 +44,9 @@ function intersects(a,b,c,d,p,q,r,s) {
 function lineIntersect (a, b) {
   return intersects(a.a.x, a.a.y, a.b.x, a.b.y, b.a.x, b.a.y, b.b.x, b.b.y)
 }
+function rimage (img, x, y) {
+  image(img, x, y, img.width*SCALE, img.height*SCALE)
+}
 function loadImages (outfits, parts) {
   let bigset = {}
   for (let outfit of outfits) {
