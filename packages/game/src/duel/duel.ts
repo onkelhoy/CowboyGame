@@ -3,7 +3,7 @@ import { GameObject } from "@papit/game-engine";
 import type { Cowboy } from "../cowboy/cowboy";
 import { spread, type CowboyEvent } from "../rules";
 import { BARREL_TOP, BARREL_X } from "../scene/map";
-import { GROUND_Y, WORLD } from "../tuning";
+import { BULLET_PUSH, GROUND_Y, WORLD } from "../tuning";
 import { Bullet } from "./bullet";
 import { firstHit, type Hit, type Target } from "./hits";
 
@@ -64,7 +64,9 @@ export class Duel extends GameObject {
         {
             this.remove(bullet);
             this.bullets.delete(bullet);
-            this.events.hit(hit, bullet, hit.kind === "barrel" ? null : target);
+            const struck = hit.kind === "barrel" ? null : target;
+            if (hit.kind !== "barrel") target.die(hit.kind, bullet.velocity.x * BULLET_PUSH, bullet.velocity.y * BULLET_PUSH);
+            this.events.hit(hit, bullet, struck);
             return;
         }
 

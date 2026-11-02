@@ -1,22 +1,22 @@
 import { GameObject, type Layer2D } from "@papit/game-engine";
 
 import type { Point, Target } from "../duel/hits";
-import { createCowboy, step } from "../rules";
-import { COWBOY_SCALE, GROUND_Y, HEAD_FORWARD } from "../tuning";
+import { createCowboy, step, type CowboyEvent } from "../rules";
+import { COWBOY_SCALE, GROUND_Y, HEAD_FORWARD, WORLD } from "../tuning";
 import { Body } from "./body";
 import type { Parts } from "./outfit";
 
 /** One cowboy on the map. `side` is 1 for the left one, who faces right. */
 export class Cowboy extends GameObject {
-    readonly body: Body;
-    readonly state = createCowboy();
+    body: Body;
+    state = createCowboy();
     /** Where the other cowboy aims, his head when he stands tall. */
     readonly standingHead: Point;
     /** Who's holding. */
     control: () => boolean = () => false;
     alive = true;
 
-    constructor(parts: Parts, x: number, readonly side: 1 | -1) {
+    constructor(private parts: Parts, x: number, readonly side: 1 | -1) {
         super();
         this.body = new Body(parts);
         this.position.x = x;
@@ -31,10 +31,36 @@ export class Cowboy extends GameObject {
     }
 
     /** Runs the rules for one step and sets the pose from them. */
-    advance(dt: number) {
-        const events = step(this.state, this.alive && this.control(), dt);
+    advance(dt: number): CowboyEvent[] {
+        if (!this.alive)
+        {
+            this.body.tumble(dt);
+            return [];
+        }
+
+        const events = step(this.state, this.control(), dt);
         this.body.pose(this.state.stand, this.state.kick);
-        return this.alive ? events : [];
+        return events;
+    }
+
+    /** Goes down from a bullet, the velocity is in world units per second. */
+    die(part: "head" | "body", x: number, y: number) {
+        this.alive = false;
+
+        const { x: px, y: py } = this.position;
+        const size = this.scale.y;
+        this.body.fall({
+            left: (this.side === 1 ? 20 - px : px - WORLD.width + 20) / size,
+            right: (this.side === 1 ? WORLD.width - 20 - px : px - 20) / size,
+            bottom: 0,
+        }, part === "head" ? "top" : "neck", x / this.scale.x, y / size);
+    }
+
+    /** Back on his feet with a full gun. */
+    reset() {
+        this.alive = true;
+        this.state = createCowboy();
+        this.body = new Body(this.parts);
     }
 
     get muzzle() {

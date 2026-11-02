@@ -21,7 +21,8 @@ export async function startGame() {
     const hold = new Hold(engine.canvas);
     left.control = () => hold.held;
 
-    if (new URLSearchParams(location.search).has("bot"))
+    const practice = new URLSearchParams(location.search).has("bot");
+    if (practice)
     {
         const bot = createBot();
         right.control = () => bot(right.state, engine.deltaTime);
@@ -30,7 +31,8 @@ export async function startGame() {
     const duel = new Duel(left, right, {
         action() { },
         hit(_hit, _bullet, target) {
-            if (target) target.alive = false;
+            // the round sequence comes with the kill, until then practice just starts over
+            if (target && practice) setTimeout(() => [left, right].forEach(cowboy => cowboy.reset()), 3000);
         },
     });
 

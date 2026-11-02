@@ -29,3 +29,11 @@ export const KICK_FADE = 4;
 export const BULLET_SPEED = 3900;
 /** How much of the head a bullet can clip, out in front of the bone. */
 export const HEAD_FORWARD = 10;
+
+/** World units per second². */
+export const GRAVITY = 720;
+export const BOUNCE = .9;
+/** Velocity kept per 1/60 s. */
+export const FRICTION = .99;
+/** How much of the bullet's speed goes into the body. */
+export const BULLET_PUSH = .5;

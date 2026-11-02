@@ -1,10 +1,23 @@
-import { Armature, type Bone } from "@papit/armature";
+import { Armature, type Bone, type IK } from "@papit/armature";
 
 import type { Parts } from "./outfit";
+import { Ragdoll, type RagdollBounds, type RagdollPoint } from "./ragdoll";
 
 const MUZZLE = 18;
 
+const STICKS = [
+    ["top", "neck"], ["neck", "hips"], ["top", "hips"],
+    ["neck", "left elbow"], ["left elbow", "left hand"],
+    ["neck", "right elbow"], ["right elbow", "right hand"],
+    ["hips", "left knee"], ["left knee", "left foot"],
+    ["hips", "right knee"], ["right knee", "right foot"],
+] as const;
+
+type Joint = (typeof STICKS)[number][number];
+
 /** The armature of one cowboy, in the old game's units with y down and him facing +x. */
+const positionOf = ({ x, y }: RagdollPoint) => [x, y, 0];
+
 export class Body {
     readonly rig = new Armature();
     private ratio: number;
@@ -26,6 +39,11 @@ export class Body {
     private leftFoot: [number, number] = [0, 0];
     private kneePole: [number, number] = [60, 0];
 
+    private limbs: IK[];
+    private spine: IK;
+    private ragdoll: Ragdoll<Joint> | null = null;
+    private chains: [IK, Joint[]][] = [];
+
     constructor(private parts: Parts) {
         const { rig } = this;
         this.ratio = 60 / parts.torso.height;
@@ -44,10 +62,63 @@ export class Body {
         this.leftUpper = rig.add("left upper", { length: 34, parent: this.torso, attach: .8, offset: [0, 4] });
         this.leftLower = rig.add("left lower", { length: 34, parent: this.leftUpper });
 
-        rig.ik(this.rightLower, { chain: 2, target: this.hand, pole: this.elbowPole });
-        rig.ik(this.leftLower, { chain: 2, target: this.hand, pole: this.elbowPole });
-        rig.ik(this.rightShin, { chain: 2, target: [0, 0], pole: this.kneePole });
-        rig.ik(this.leftShin, { chain: 2, target: this.leftFoot, pole: this.kneePole });
+        this.limbs = [
+            rig.ik(this.rightLower, { chain: 2, target: this.hand, pole: this.elbowPole }),
+            rig.ik(this.leftLower, { chain: 2, target: this.hand, pole: this.elbowPole }),
+            rig.ik(this.rightShin, { chain: 2, target: [0, 0], pole: this.kneePole }),
+            rig.ik(this.leftShin, { chain: 2, target: this.leftFoot, pole: this.kneePole }),
+        ];
+        // without a target it only exists for `setPositions`
+        this.spine = rig.ik(this.head, { chain: 2 });
+    }
+
+    /** Lets go of the pose. `hit` is the joint the bullet pushes, in units per second. */
+    fall(bounds: RagdollBounds, hit: "top" | "neck", x: number, y: number) {
+        const { head, torso, leftUpper, leftLower, rightUpper, rightLower, leftThigh, leftShin, rightThigh, rightShin } = this;
+
+        this.ragdoll = new Ragdoll<Joint>({
+            top: head.tail,
+            neck: torso.tail,
+            hips: torso.head,
+            "left elbow": leftUpper.tail,
+            "left hand": leftLower.tail,
+            "right elbow": rightUpper.tail,
+            "right hand": rightLower.tail,
+            "left knee": leftThigh.tail,
+            "left foot": leftShin.tail,
+            "right knee": rightThigh.tail,
+            "right foot": rightShin.tail,
+        }, STICKS, bounds);
+        this.ragdoll.push(hit, x, y);
+
+        for (const limb of this.limbs) limb.weight = 0;
+        this.chains = [
+            [this.spine, ["hips", "neck", "top"]],
+            [this.limbs[0], ["neck", "right elbow", "right hand"]],
+            [this.limbs[1], ["neck", "left elbow", "left hand"]],
+            [this.limbs[2], ["hips", "right knee", "right foot"]],
+            [this.limbs[3], ["hips", "left knee", "left foot"]],
+        ];
+    }
+
+    /** One step of a body that's falling. Draws through the rig, like any other pose. */
+    tumble(dt: number) {
+        if (!this.ragdoll) return;
+
+        this.ragdoll.update(dt);
+        const { points } = this.ragdoll;
+
+        for (const [ik, joints] of this.chains)
+        {
+            ik.setPositions(joints.flatMap(joint => positionOf(points[joint])));
+        }
+        this.rig.update();
+    }
+
+    /** Where the torso is, for what follows the body around. */
+    get chest() {
+        const { head, tail } = this.torso;
+        return { x: (head.x + tail.x) / 2, y: (head.y + tail.y) / 2 };
     }
 
     /** `stand` and `shoot` from 0 to 1, the same two numbers that drove the old body. */

@@ -25,3 +25,22 @@ test("?bot gives an opponent who moves", async ({ page }) => {
     await page.waitForFunction(() => (window as any).cowboy);
     await page.waitForFunction(() => (window as any).cowboy.right.state.stand > 0, undefined, { timeout: 8000 });
 });
+
+test("a hit cowboy falls down and stays on the ground, without bad numbers", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+
+    await page.goto("views/game/");
+    await page.waitForFunction(() => (window as any).cowboy);
+    await page.evaluate(() => Object.assign((window as any).cowboy.right.state, { stand: 1, recoil: 60 }));
+
+    await page.keyboard.down(" ");
+    await page.waitForFunction(() => !(window as any).cowboy.right.alive);
+    await page.keyboard.up(" ");
+    await page.waitForTimeout(2500);
+
+    const chest = await page.evaluate(() => (window as any).cowboy.right.body.chest);
+    expect(Number.isFinite(chest.x)).toBe(true);
+    expect(chest.y).toBeGreaterThan(-30);
+    expect(errors).toEqual([]);
+});
