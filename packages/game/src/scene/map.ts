@@ -8,6 +8,7 @@ import { Pole } from "./pole";
 import { Prop } from "./prop";
 
 export const BARREL_X = 300;
+export const BARREL_TOP = GROUND_Y - 106;
 
 /** Draw order: behind the cowboys, the cowboys, in front of them. */
 export async function createMap() {

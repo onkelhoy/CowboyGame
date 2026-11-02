@@ -24,3 +24,8 @@ export const RELOAD = .67;
 export const AMMO = 6;
 /** How fast the kick of a shot fades, per second. */
 export const KICK_FADE = 4;
+
+/** World units per second, about 0.2 s across. */
+export const BULLET_SPEED = 3900;
+/** How much of the head a bullet can clip, out in front of the bone. */
+export const HEAD_FORWARD = 10;

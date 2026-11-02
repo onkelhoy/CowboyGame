@@ -2,6 +2,8 @@ import { Armature, type Bone } from "@papit/armature";
 
 import type { Parts } from "./outfit";
 
+const MUZZLE = 18;
+
 /** The armature of one cowboy, in the old game's units with y down and him facing +x. */
 export class Body {
     readonly rig = new Armature();
@@ -79,12 +81,14 @@ export class Body {
         this.rig.update();
     }
 
-    /** Where the gun points from, in rig units. */
-    get gun() {
-        return this.rightLower;
+    /** The end of the barrel, in rig units. The pistol reaches past the bone. */
+    get muzzle() {
+        const { head, tail } = this.rightLower;
+        const along = 1 + MUZZLE / this.rightLower.length;
+        return { x: head.x + (tail.x - head.x) * along, y: head.y + (tail.y - head.y) * along };
     }
 
-    /** Lines to test a bullet against, in rig units. */
+    /** Lines a bullet can hit, in rig units. */
     get hitLines() {
         return { head: this.head, body: this.torso };
     }

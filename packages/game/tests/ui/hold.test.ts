@@ -28,7 +28,7 @@ test("space holds, and losing focus lets go", async ({ page }) => {
 });
 
 test("a held cowboy rises and ducks again on release", async ({ page }) => {
-    const stand = () => page.evaluate(() => (window as any).cowboy.left.stand as number);
+    const stand = () => page.evaluate(() => (window as any).cowboy.left.state.stand as number);
 
     await page.keyboard.down(" ");
     await expect.poll(stand).toBeGreaterThan(.2);
