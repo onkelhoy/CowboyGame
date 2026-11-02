@@ -5,6 +5,7 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 ## Where we are
 
 - **Next:** task 15, the lobby. Tasks 11, 13 and 14 are done. Task 12, the feel pass, is still open and needs the owner playing.
+- **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. This overrides the brief and any task below that mentions tests, including task 28.
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
 - **Try it:** `npm start`, then <http://localhost:3000/views/game/?bot>. `?bot` and `?stage` skip the landing sign, UI tests use `?stage`. After a kill, practice starts over by itself, online rounds come with task 22.
