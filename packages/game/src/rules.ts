@@ -55,7 +55,7 @@ export function step(state: CowboyState, held: boolean, dt: number): CowboyEvent
     state.drawing = false;
     if (released && state.stand >= DRAW_LINE)
     {
-        fire(state, 1 - (state.stand - DRAW_LINE) / (1 - DRAW_LINE), events);
+        fire(state, wildness(state.stand), events);
         return events;
     }
 
@@ -93,6 +93,16 @@ function reload(state: CowboyState, dt: number, events: CowboyEvent[]) {
     state.reload -= RELOAD;
     state.ammo++;
     events.push({ type: "reload" });
+}
+
+/** How wild a shot is that leaves at `stand`, 0 for dead on and 1 at the draw line. */
+export function wildness(stand: number) {
+    return 1 - (stand - DRAW_LINE) / (1 - DRAW_LINE);
+}
+
+/** Radians either way a shot can go when it leaves at `stand`. */
+export function spreadFor(stand: number) {
+    return SPREAD * Math.min(1, wildness(stand));
 }
 
 /** Turns a shot's `wild` and a roll from -1 to 1 into radians off the aim. */

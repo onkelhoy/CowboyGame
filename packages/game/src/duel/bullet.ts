@@ -9,6 +9,8 @@ const TRAIL = 400;
 export class Bullet extends GameObject {
     readonly from: Point = { x: 0, y: 0 };
     readonly velocity: Point;
+    /** The fly-by sound played. */
+    passed = false;
     private readonly origin: Point;
 
     constructor(x: number, y: number, readonly angle: number, readonly shooter: 1 | -1) {

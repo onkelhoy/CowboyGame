@@ -12,7 +12,11 @@ export type DuelEvents = {
     action(cowboy: Cowboy, event: CowboyEvent): void;
     /** A bullet reached `target`, null for a barrel or the ground. */
     hit(hit: Hit, bullet: Bullet, target: Cowboy | null): void;
+    /** A bullet passed the middle of the map. */
+    flyby(): void;
 };
+
+const FLYBY = 100;
 
 /** Runs both cowboys and everything in flight. */
 export class Duel extends GameObject {
@@ -25,6 +29,8 @@ export class Duel extends GameObject {
 
     constructor(readonly left: Cowboy, readonly right: Cowboy, private events: DuelEvents) {
         super();
+        left.opponent = right;
+        right.opponent = left;
     }
 
     override update(dt: number) {
@@ -45,12 +51,10 @@ export class Duel extends GameObject {
     }
 
     private shoot(cowboy: Cowboy, wild: number) {
-        const other = cowboy === this.left ? this.right : this.left;
         const muzzle = cowboy.muzzle;
-        const aim = other.standingHead;
 
         // mirrored so a roll means the same on both screens
-        const angle = Math.atan2(aim.y - muzzle.y, aim.x - muzzle.x) + spread(wild, Math.random() * 2 - 1) * cowboy.side;
+        const angle = cowboy.aim + spread(wild, Math.random() * 2 - 1) * cowboy.side;
         const bullet = new Bullet(muzzle.x, muzzle.y, angle, cowboy.side);
         this.bullets.add(bullet);
         this.add(bullet);
@@ -71,6 +75,12 @@ export class Duel extends GameObject {
         }
 
         const { x, y } = bullet.position;
+        if (!bullet.passed && Math.abs(x - WORLD.width / 2) < FLYBY)
+        {
+            bullet.passed = true;
+            this.events.flyby();
+        }
+
         if (x < -100 || x > WORLD.width + 100 || y > GROUND_Y)
         {
             this.remove(bullet);

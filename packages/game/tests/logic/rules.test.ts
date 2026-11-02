@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { createCowboy, spread, step, type CowboyEvent, type CowboyState } from "../../src/rules";
+import { createCowboy, spread, spreadFor, step, type CowboyEvent, type CowboyState } from "../../src/rules";
 import { AMMO, DRAW_LINE, DUCK_TIME, RECOIL, RELOAD, RISE_TIME, SPREAD } from "../../src/tuning";
 
 const DT = 1 / 120;
@@ -126,4 +126,10 @@ test("spread falls to nothing at the top", () => {
     expect(spread(0, 1)).toBe(0);
     expect(spread(1, 1)).toBe(SPREAD);
     expect(spread(1, -1)).toBe(-SPREAD);
+});
+
+test("the shown spread matches what a release at that height would do", () => {
+    expect(spreadFor(DRAW_LINE)).toBeCloseTo(SPREAD);
+    expect(spreadFor(1)).toBeCloseTo(0);
+    expect(spreadFor(0)).toBe(SPREAD);
 });

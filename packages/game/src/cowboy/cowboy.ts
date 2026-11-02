@@ -12,6 +12,8 @@ export class Cowboy extends GameObject {
     state = createCowboy();
     /** Where the other cowboy aims, his head when he stands tall. */
     readonly standingHead: Point;
+    /** Who he duels. */
+    opponent: Cowboy = this;
     /** Who's holding. */
     control: () => boolean = () => false;
     alive = true;
@@ -65,6 +67,12 @@ export class Cowboy extends GameObject {
 
     get muzzle() {
         return this.toWorld(this.body.muzzle);
+    }
+
+    /** The angle of a shot leaving now, before any spread. */
+    get aim() {
+        const muzzle = this.muzzle;
+        return Math.atan2(this.opponent.standingHead.y - muzzle.y, this.opponent.standingHead.x - muzzle.x);
     }
 
     get hitLines(): Target[] {

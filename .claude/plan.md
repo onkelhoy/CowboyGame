@@ -4,9 +4,11 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 9. Tasks 1 to 10 are one batch the owner asked for, so run them in a row, committing after each, without stopping for "do next task".
+- **Next:** task 11, the kill. The batch of tasks 1 to 10 is done, so "do next task" applies again.
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
+- **Try it:** `npm start`, then <http://localhost:3000/views/game/?bot>. After a kill, practice starts over by itself after 3 s, a stopgap in `game.ts` until task 11.
+- **For the feel pass (task 12):** a shot from the top can be followed quickly by letting go after the recoil, dipping a little and pressing again, which keeps a cowboy high and firing about every 0.5 s. It's exposed and limited by ammo, so it stays unless playing shows it's too strong.
 
 ## The game now
 
@@ -207,3 +209,4 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - `Mouse` only hears `mouseup` on the canvas, so a release outside it leaves `pressing` stuck.
 - `Keyboard.handlekeyup` throws on a key whose `keydown` it never saw, and `blur` leaves keys pressed.
 - `line-intersection` isn't in `.claude/CATALOG.md`.
+- The server's page template adds its own `<title>@papit/server</title>` first, so a page's title loses in dev. Check the static template in task 30.
