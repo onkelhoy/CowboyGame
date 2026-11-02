@@ -28,7 +28,7 @@ export async function showLanding(hold: Hold, sound: Sound, invite: Invite | nul
     landing.id = "landing";
     landing.innerHTML = `
         <form class="sign">
-            <p class="headline">${headline}</p>
+            <p class="headline${invite ? "" : " alone"}">${headline}</p>
             <div class="poster">
                 <h2>${t("landing.wanted")}</h2>
                 ${name

@@ -155,6 +155,11 @@ pap-dialog input[type="range"] {
     text-align: center;
 }
 
+.sign .headline.alone {
+    top: 1%;
+    height: 11%;
+}
+
 .sign .poster {
     position: absolute;
     top: 28%;
@@ -320,7 +325,7 @@ pap-dialog input[type="range"] {
     height: 41px;
 }
 
-.poster {
+#invite .poster {
     display: grid;
     justify-items: center;
     gap: 12px;
@@ -328,13 +333,13 @@ pap-dialog input[type="range"] {
     text-align: center;
 }
 
-.poster > div {
+#invite .poster > div {
     display: grid;
     justify-items: center;
     gap: 8px;
 }
 
-.poster p {
+#invite .poster p {
     margin: 0;
 }
 
@@ -365,7 +370,7 @@ pap-dialog input[type="range"] {
 
 /* a sideways phone has no height to spare, the code goes beside the words */
 @media (orientation: landscape) and (max-height: 500px) {
-    .poster {
+    #invite .poster {
         grid-template-columns: auto minmax(0, 300px);
         align-items: center;
     }
