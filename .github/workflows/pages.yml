@@ -33,10 +33,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # bin/icons.mjs draws the PNG icons in a browser
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
       - name: Static site
         env:
           CI: true

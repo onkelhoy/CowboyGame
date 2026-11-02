@@ -234,5 +234,5 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 
 - Songs: `La Tierra Va a Hablar` plays at the sign and the pole, `Dust and Steel` in a duel. The owner didn't say which is which, swap them in `SONGS` in `sound.ts` if wrong. They crossfade, and the music dips in slow motion.
 - Text: every word is in `asset/translations/en.json` and `sv.json` under `cowboy`. Swedish is picked by the browser's language, with no picker. The Swedish was written by the assistant, the owner should read it.
-- Pages: `npm run pages` makes `docs/`, checked under `/cowboy/` with no failed requests, the base is `/CowboyGame/` now. Icons come from `asset/manifest.logo.svg`, else `asset/logo.svg`, else a drawn cylinder, made by `bin/icons.mjs` (PNGs through Playwright). No service worker.
+- Pages: `npm run pages` makes `docs/`, checked under `/cowboy/` with no failed requests, the base is `/CowboyGame/` now. Icons come from `asset/manifest.logo.svg`, else `asset/logo.svg`, else a drawn cylinder, made by `bin/icons.mjs` (PNGs through Playwright, on your machine only: they're committed, so a new logo means committing the new PNGs). No service worker.
 - The sound effects' source isn't written down, see `CREDITS.md`.

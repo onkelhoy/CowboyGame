@@ -1,6 +1,7 @@
 // Makes the icons of the page: `manifest.logo.svg` from the root `asset/` folder, else `logo.svg`, else a
 // drawn revolver cylinder so the manifest never points at nothing. A manifest has no fallback of its own,
 // so it's done here. The PNGs are for iPhones (180) and for installing on Android (192, 512).
+// They're committed, so the deploy needs no browser. A new logo redraws them on `npm start`: commit the result.
 import fs from "node:fs";
 import path from "node:path";
 
