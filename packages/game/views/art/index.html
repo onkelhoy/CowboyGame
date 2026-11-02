@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cowboy art</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" defer src="main.ts"></script>
+</head>
+
+<body>
+    <header>
+        <h1>Cowboy art</h1>
+        <p>Live game frames, not pictures. Pick a sky and every frame reloads with it.</p>
+        <nav id="palettes" aria-label="Palette"></nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>The duel</h2>
+            <div class="row">
+                <figure class="wide"><div class="frame" data-width="1200" data-height="600"></div><figcaption>Laptop</figcaption></figure>
+                <figure><div class="frame" data-width="844" data-height="390"></div><figcaption>Phone</figcaption></figure>
+            </div>
+        </section>
+
+        <section>
+            <h2>The pole</h2>
+            <div class="row">
+                <figure class="wide"><div class="frame" data-width="1200" data-height="600" data-pole></div><figcaption>Laptop</figcaption></figure>
+                <figure><div class="frame" data-width="844" data-height="340" data-pole></div><figcaption>Phone, browser bars showing</figcaption></figure>
+            </div>
+        </section>
+
+        <section>
+            <h2>Before</h2>
+            <div class="row even">
+                <figure><img src="before-duel.png" alt="The duel in the old art"><figcaption>The duel, old art</figcaption></figure>
+                <figure><img src="before-pole.png" alt="The pole in the old art"><figcaption>The pole, old art</figcaption></figure>
+            </div>
+        </section>
+
+        <section>
+            <h2>The pieces</h2>
+            <div id="sheet"></div>
+        </section>
+
+        <section>
+            <h2>Play it</h2>
+            <p class="lead">Hold to rise, let go to fire. <a id="full" target="_blank">Open it full size</a> to try the hit and the slow motion properly.</p>
+            <div class="frame play" data-width="1200" data-height="600" data-bot></div>
+        </section>
+    </main>
+</body>
+
+</html>

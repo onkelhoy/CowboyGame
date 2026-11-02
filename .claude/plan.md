@@ -9,6 +9,7 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 - **Branch:** `main` is the game and every push to it deploys, so work on a branch and merge. The 2018 game is on `old-version` in the same repo, `onkelhoy/CowboyGame`.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
 - **Try it alone:** `npm start`, then <http://localhost:3000/views/game/?bot>. `?bot` and `?stage` skip the landing sign and the network.
+- **Review the art:** `npm start`, then <http://localhost:3000/views/art/>. It's live game frames per palette, the old art and every piece. It isn't part of the static build. New files in `asset/` need a restart of `npm start`.
 - **Try it with two:** `npm run signal` (port 3001) and `npm start`, then open `/views/game/?signal=ws://localhost:3001` in two browsers or profiles, one for the host. The invite link keeps `?signal=`. Without it the deployed server is used, on localhost too, as papchat does.
 
 ## The game now
@@ -78,7 +79,8 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 | Same start | Five pings at room start give the clock offset, using the lowest round trip. The host sends a start time in shared time. `@papit/webrtc` has no ping, so we write one. |
 | Screens | World fits by height and width, and sky and ground run on past it on wider phones. From the pole onward, portrait shows "turn your phone". The name sign and QR dialog work upright, because a friend usually opens the link that way and a landscape keyboard covers half the screen. |
 | Names | Sent through the room's `profile`, 16 characters at most. |
-| Signs | The old `sign.svg` wooden post and its paper, reused for the landing sign. The old WANTED poster goes on it with the player's name. |
+| Signs | The old `sign.svg` wooden post and its paper, reused for the landing sign. The pole is built from pieces cut out of it: `plank-1`, `plank-2`, `post`, `rock`, `grass`. The old WANTED poster goes on it with the player's name. |
+| Art style | Flat and crisp: hard edges, cel shading, no gradients, haze or transparency, so shapes stay apart. `scene/palette.ts` holds the land's colours: `noon` is the default, `sunset` and `gold` are the other two, `?palette=` tries one. The owner picks after review. |
 | Background | Drawn by us in layers, desert and mesas. The old `background1.jpg` isn't the owner's art: it's a 626 × 626 Freepik image with the watermark in it, so it doesn't ship. |
 | Phone details | `touch-action: none`, no text selection or callout on long press, safe area insets, wake lock during a duel. Audio starts on the first tap. iPhones have no fullscreen and no orientation lock. |
 | Ragdoll | Local Verlet module behind a small interface, drawn through `ik.setPositions`, so papit's can replace it later. |
@@ -215,6 +217,7 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 ## Papit gaps to report
 
 - `@papit/webrtc` calls `crypto.randomUUID`, which is missing on a page that isn't secure, so plain `http://` throws "not a function" instead of a clear message. A phone on a LAN address hits this too. `views/game/index.html` redirects github.io to https.
+- The server finds assets once at start, so a file added while it runs answers 500 until a restart.
 - No QR or share link component.
 - `@papit/webrtc` has no round trip or clock helper.
 - The `game` package template in `@papit/create` is out of date, see the technical notes.

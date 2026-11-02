@@ -2,16 +2,20 @@ import { GameObject, type Layer2D } from "@papit/game-engine";
 
 import { GROUND_Y, WORLD } from "../tuning";
 
-const HEIGHT = 250;
-const WOOD = "#7a4a26";
-const WOOD_DARK = "#54301a";
-const BOARD = "#c98f4e";
+const HEIGHT = 262;
+const POST_WIDTH = 22;
+const SKULL_WIDTH = 74;
 
-/** The pole at the middle of the map, an arrow sign per player, always showing their names. */
+/** How far the board runs past the post behind it, how far it reaches, and its point. */
+const BACK = 38, REACH = 158, TIP = 28, HALF = 19;
+
+type Art = Record<"post" | "plank1" | "plank2" | "skull", HTMLImageElement>;
+
+/** The pole at the middle of the map, built from the planks of the wooden sign, an arrow per player. */
 export class Pole extends GameObject {
     names: [string, string] = ["???", "???"];
 
-    constructor() {
+    constructor(private art: Art) {
         super();
         this.position.x = WORLD.width / 2;
         this.position.y = GROUND_Y;
@@ -19,57 +23,52 @@ export class Pole extends GameObject {
 
     override render(layer: Layer2D | object) {
         const { ctx } = layer as Layer2D;
+        const { post, plank1, plank2, skull } = this.art;
 
-        ctx.fillStyle = WOOD;
-        ctx.strokeStyle = WOOD_DARK;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(-9, 2);
-        ctx.lineTo(-7, -HEIGHT);
-        ctx.lineTo(7, -HEIGHT - 4);
-        ctx.lineTo(9, 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        ctx.drawImage(post, -POST_WIDTH / 2, -HEIGHT, POST_WIDTH, HEIGHT + 3);
 
-        arrow(ctx, -1, -HEIGHT + 44, this.names[0], -.05);
-        arrow(ctx, 1, -HEIGHT + 96, this.names[1], .04);
+        arrow(ctx, plank1, -1, -HEIGHT + 62, this.names[0], -.05);
+        arrow(ctx, plank2, 1, -HEIGHT + 112, this.names[1], .04);
+
+        const height = SKULL_WIDTH * skull.height / skull.width;
+        ctx.drawImage(skull, -SKULL_WIDTH / 2, -HEIGHT - 16, SKULL_WIDTH, height);
     }
 }
 
-/** An arrow shaped board reaching out from the pole, `side` is -1 for left. */
-function arrow(ctx: CanvasRenderingContext2D, side: -1 | 1, y: number, name: string, tilt: number) {
-    const reach = 150, tip = 26, half = 21;
+/** A plank cut to a point, reaching out from the pole, `side` is -1 for left. */
+function arrow(ctx: CanvasRenderingContext2D, plank: HTMLImageElement, side: -1 | 1, y: number, name: string, tilt: number) {
+    const width = BACK + REACH + TIP + 8;
+    const height = width * plank.height / plank.width;
 
     ctx.save();
     ctx.translate(0, y);
+
+    // the board's shadow on the post
+    ctx.fillStyle = "rgba(30, 15, 5, .35)";
+    ctx.fillRect(-POST_WIDTH / 2, HALF - 3, POST_WIDTH, 9);
+
     ctx.rotate(tilt);
+    ctx.scale(side, 1);
 
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(side * -14, -half);
-    ctx.lineTo(side * reach, -half);
-    ctx.lineTo(side * (reach + tip), 0);
-    ctx.lineTo(side * reach, half);
-    ctx.lineTo(side * -14, half);
+    ctx.moveTo(-BACK, -height);
+    ctx.lineTo(REACH, -height);
+    ctx.lineTo(REACH, -HALF);
+    ctx.lineTo(REACH + TIP, 0);
+    ctx.lineTo(REACH, HALF);
+    ctx.lineTo(REACH, height);
+    ctx.lineTo(-BACK, height);
     ctx.closePath();
-    ctx.fillStyle = BOARD;
-    ctx.fill();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = WOOD_DARK;
-    ctx.stroke();
+    ctx.clip();
+    ctx.drawImage(plank, -BACK, -height / 2, width, height);
+    ctx.restore();
 
-    ctx.fillStyle = WOOD_DARK;
-    for (const x of [-8, reach - 8])
-    {
-        ctx.beginPath();
-        ctx.arc(side * x, 0, 3, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    ctx.font = "20px Rye, Georgia, serif";
+    ctx.scale(side, 1);
+    ctx.font = "24px Rye, Georgia, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#3a2010";
-    ctx.fillText(name, side * (reach / 2 + 4), 1, reach - 24);
+    ctx.fillText(name, side * (REACH / 2 + 14), 1, REACH - 30);
     ctx.restore();
 }
