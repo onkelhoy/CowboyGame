@@ -23,6 +23,12 @@ export class Bullet extends GameObject {
         this.velocity = { x: Math.cos(angle) * BULLET_SPEED, y: Math.sin(angle) * BULLET_SPEED };
     }
 
+    /** Moves it on by `seconds` in one go, for a bullet that was shot a moment ago over there. */
+    catchUp(seconds: number) {
+        this.position.x += this.velocity.x * seconds;
+        this.position.y += this.velocity.y * seconds;
+    }
+
     get to(): Point {
         return { x: this.position.x, y: this.position.y };
     }

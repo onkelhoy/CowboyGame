@@ -12,6 +12,8 @@ export type DuelEvents = {
     action(cowboy: Cowboy, event: CowboyEvent): void;
     /** A bullet reached `target`, null for a barrel or the ground. */
     hit(hit: Hit, bullet: Bullet, target: Cowboy | null): void;
+    /** One of ours left the gun, with the angle it got. */
+    fired?(angle: number, from: { x: number; y: number }): void;
     /** A bullet passed the middle of the map. */
     flyby(): void;
 };
@@ -44,6 +46,14 @@ export class Duel extends GameObject {
         for (const bullet of this.bullets) this.test(bullet);
     }
 
+    /** A bullet from the other screen, `age` seconds after it left the gun. */
+    spawn(x: number, y: number, angle: number, age: number) {
+        const bullet = new Bullet(x, y, angle, -1);
+        bullet.catchUp(age);
+        this.bullets.add(bullet);
+        this.add(bullet);
+    }
+
     /** Takes every bullet off the map. */
     clear() {
         for (const bullet of this.bullets) this.remove(bullet);
@@ -66,6 +76,7 @@ export class Duel extends GameObject {
         const bullet = new Bullet(muzzle.x, muzzle.y, angle, cowboy.side);
         this.bullets.add(bullet);
         this.add(bullet);
+        this.events.fired?.(angle, muzzle);
     }
 
     private test(bullet: Bullet) {

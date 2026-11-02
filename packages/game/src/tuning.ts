@@ -50,3 +50,12 @@ export const RAMP_TIME = .6;
 export const LINGER_TIME = 2.2;
 /** Turns blood off, and leaves the rest of the kill as it is. */
 export const BLOOD = true;
+
+/** Rounds to win a duel, so the best of five. */
+export const WINS = 3;
+/** Milliseconds from both being ready to GO, the zoom out and 3, 2, 1. */
+export const START_IN = 4600;
+/** Milliseconds from the end of a round to GO of the next, 3, 2, 1. */
+export const NEXT_IN = 3600;
+/** Seconds between poses on the wire. */
+export const POSE_EVERY = 1 / 30;

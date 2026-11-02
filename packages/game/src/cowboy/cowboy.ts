@@ -2,7 +2,7 @@ import { GameObject, type Layer2D } from "@papit/game-engine";
 
 import type { Point, Target } from "../duel/hits";
 import { createCowboy, step, type CowboyEvent } from "../rules";
-import { COWBOY_SCALE, GROUND_Y, HEAD_FORWARD, WORLD } from "../tuning";
+import { COWBOY_SCALE, DUCK_TIME, GROUND_Y, HEAD_FORWARD, KICK_FADE, RISE_TIME, WORLD } from "../tuning";
 import { Body } from "./body";
 import type { Parts } from "./outfit";
 
@@ -17,6 +17,9 @@ export class Cowboy extends GameObject {
     /** Who's holding. */
     control: () => boolean = () => false;
     alive = true;
+    /** The other player's cowboy: he follows poses from the wire, and what hits him is decided over there. */
+    remote = false;
+    private seen = { stand: 0, dir: 0, at: 0 };
     /** The round is decided: nothing he does counts, and no bullet can hit him. */
     private locked = false;
     /** Bullets pass him, the win sign is up. */
@@ -48,12 +51,38 @@ export class Cowboy extends GameObject {
 
         // a locked cowboy who fired stands tall, the rest go down
         const held = this.locked ? this.state.spent && !this.state.falling : this.control();
+        if (this.remote) return this.follow(dt);
+
         const events = step(this.state, held, dt);
 
         // the kick shows from the next frame, a shot leaves the way the gun pointed before it
         const fired = events.some(event => event.type === "shot");
         this.body.pose(this.state.stand, fired ? 0 : this.state.kick);
         return events;
+    }
+
+    /** A pose from the other screen. `delay` is how old it is, in seconds. */
+    receive(stand: number, dir: number, delay: number) {
+        this.seen = { stand, dir, at: performance.now() / 1000 - delay };
+    }
+
+    /** He's moving the way the last pose said, moved forward by how long ago that was. */
+    private follow(dt: number): CowboyEvent[] {
+        const { stand, dir, at } = this.seen;
+        const age = Math.max(0, performance.now() / 1000 - at);
+        const speed = dir > 0 ? 1 / RISE_TIME : dir < 0 ? -1 / DUCK_TIME : 0;
+        const target = Math.min(1, Math.max(0, stand + speed * age));
+
+        // a blend, so a late or lost pose doesn't make him jump
+        this.state.stand += (target - this.state.stand) * Math.min(1, 25 * dt);
+        this.state.kick = Math.max(0, this.state.kick - KICK_FADE * dt);
+        this.body.pose(this.state.stand, this.state.kick);
+        return [];
+    }
+
+    /** His own gun went off over there. */
+    kick() {
+        this.state.kick = 1;
     }
 
     /** Takes the control away. Letting go mid draw shouldn't fire. */
@@ -80,6 +109,7 @@ export class Cowboy extends GameObject {
         this.alive = true;
         this.locked = false;
         this.safe = false;
+        this.seen = { stand: 0, dir: 0, at: 0 };
         this.state = createCowboy();
         this.body = new Body(this.parts);
     }
@@ -109,7 +139,7 @@ export class Cowboy extends GameObject {
     }
 
     get hitLines(): Target[] {
-        if (!this.alive || this.safe) return [];
+        if (!this.alive || this.safe || this.remote) return [];
 
         const { head, body } = this.body.hitLines;
         const forward = { x: HEAD_FORWARD, y: 0 };

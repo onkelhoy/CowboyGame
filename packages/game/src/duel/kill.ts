@@ -5,7 +5,6 @@ import type { Sound } from "../sound";
 import { SLOW_TIME } from "../tuning";
 import type { Banner } from "./banner";
 import type { Blood, BloodPools } from "./blood";
-import type { Bullet } from "./bullet";
 import type { Hit } from "./hits";
 import { killAt } from "./timeline";
 
@@ -16,7 +15,7 @@ export type KillParts = {
     blood: Blood;
     pools: BloodPools;
     banner: Banner;
-    /** What the win sign says, `winner` is null for a draw. */
+    /** What the win sign says, `winner` is null for a draw. It's asked once a round, when the sign goes up. */
     text(winner: Cowboy | null): string;
     /** The round is over. This is the place for a win celebration, before the rematch. */
     done(winner: Cowboy | null): void;
@@ -37,10 +36,10 @@ export class Kill extends GameObject {
     }
 
     /** A cowboy was hit. A second hit in the slow motion turns this into a draw. */
-    strike(target: Cowboy, hit: Hit, bullet: Bullet) {
+    strike(target: Cowboy, hit: Hit, angle: number) {
         const { sound, blood, cowboys } = this.parts;
 
-        blood.spray(hit.x, hit.y, bullet.angle);
+        blood.spray(hit.x, hit.y, angle);
         this.dead.push(target);
         sound.hitSlow();
 

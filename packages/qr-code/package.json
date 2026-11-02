@@ -1,0 +1,82 @@
+{
+  "name": "@cowboy/qr-code",
+  "description": "SVG QR code generated in the browser",
+  "keywords": [
+    "papit",
+    "web-component",
+    "typescript",
+    "qr-code"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build --error",
+    "watch": "tsc -w",
+    "preversion": "papit-version",
+    "postversion": "papit-version"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": true,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/onkelhoy/cowboy/tree/main/packages/molecules/qr-code",
+  "bugs": {
+    "url": "https://github.com/onkelhoy/cowboy/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onkelhoy/cowboy.git",
+    "directory": "packages/molecules/qr-code"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/web-component": "0.0.14",
+    "@papit/translator": "0.1.1"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": false,
+    "type": "web-component",
+    "main": "qr-code",
+    "htmlprefix": "cw",
+    "components": {
+      "qr-code": {
+        "className": "QrCode",
+        "htmlprefix": "cw"
+      }
+    }
+  }
+}

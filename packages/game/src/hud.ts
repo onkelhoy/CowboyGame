@@ -21,6 +21,10 @@ const BRASS_DARK = "#d99a1c";
 /** The revolver at the top of the screen. */
 export class Hud extends GameObject {
     private angle = 0;
+    /** Hidden on the pole, and nothing else of the duel is there to look at. */
+    hidden = false;
+    /** Rounds won, yours first. Null when nothing is being counted. */
+    score: (() => [number, number] | null) | null = null;
 
     constructor(private cowboy: Cowboy) {
         super();
@@ -34,9 +38,25 @@ export class Hud extends GameObject {
 
     override render(layer: Layer2D | object) {
         const { ctx } = layer as Layer2D;
-        if (!this.cowboy.alive) return;
+        if (this.hidden) return;
 
-        this.cylinder(ctx);
+        const score = this.score?.();
+        if (score) this.tally(ctx, score);
+        if (this.cowboy.alive) this.cylinder(ctx);
+    }
+
+    /** Rounds won, as two numbers under the cylinder. */
+    private tally(ctx: CanvasRenderingContext2D, [yours, theirs]: [number, number]) {
+        ctx.font = "30px Rye, Georgia, serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 7;
+        ctx.strokeStyle = OUTLINE;
+        ctx.fillStyle = BRASS;
+        const text = `${yours}  -  ${theirs}`;
+        ctx.strokeText(text, CENTER.x, CENTER.y + 100);
+        ctx.fillText(text, CENTER.x, CENTER.y + 100);
     }
 
     /** The old game's cylinder, flat colours in one thick outline, like a cartoon. */

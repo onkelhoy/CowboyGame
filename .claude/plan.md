@@ -4,11 +4,12 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 15, the lobby. Tasks 11, 13 and 14 are done. Task 12, the feel pass, is still open and needs the owner playing.
+- **Next:** task 26, music. Tasks 13 to 25 are done. Task 12, the feel pass, is still open and needs the owner playing.
 - **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. This overrides the brief and any task below that mentions tests, including task 28.
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
-- **Try it:** `npm start`, then <http://localhost:3000/views/game/?bot>. `?bot` and `?stage` skip the landing sign, UI tests use `?stage`. After a kill, practice starts over by itself, online rounds come with task 22.
+- **Try it alone:** `npm start`, then <http://localhost:3000/views/game/?bot>. `?bot` and `?stage` skip the landing sign and the network.
+- **Try it with two:** `npm run signal` (port 3001) and `npm start`, then open `/views/game/?signal=ws://localhost:3001` in two browsers or profiles, one for the host. The invite link keeps `?signal=`. Without it the deployed server is used, on localhost too, as papchat does.
 
 ## The game now
 
@@ -202,13 +203,14 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - `merge` needs `acceptMerge` on the client, or the race guard can't merge two lobbies.
 - Lobby logic to copy: `packages/foundations/core/src/lobby.ts` in papchat, lines 410 to 550 and 756 to 815.
 
-**Lobby, for tasks 15 and 16 (read 2026-11-02)**
-- `@papit/webrtc`, `signals`, `button`, `dialog`, `input`, `icon`, `translator` and `web-component` are installed. `npm run signal` runs a local signal server on port 3001. The brief says `ws://localhost:3000`, so check `signalUrl` in papchat's `config.ts` lines 69 to 85 before copying it.
-- Papchat values: STUN `stun:stun.l.google.com:19302`, `serverGapMs` 1000, `raceGuardMs` 2000, retry 3 s doubling to 30 s. Canonical is the smallest `meta.created`, then the smallest id. Only the younger network's host merges, after filtering `list()` on `meta.app` and `meta.kind`.
-- `Client` options to set: `url`, `rtc`, `topology: "chord"`, `acceptMerge`. `keepSocket` defaults to `"host"`, so members close their socket once linked.
-- `accept(newcomer, info)` gets a `NetworkInfo`. The brief's `info.size` didn't show up in the types, check it before relying on it.
-- `src/link.ts` already has `parseInvite` and `inviteLink`, with tests. `showLanding` in `game.ts` resolves when the sign is answered, and that's where hosting or joining starts.
-- `qr-code` is 76 lines plus `qr.ts`, `share-link` is 80 lines, both in papchat's `packages/molecules/`. Their translations go with them.
+**Online, built in tasks 15 to 25**
+- `src/net/lobby.ts` is the shared chord network (oldest wins, race guard, retry, 1 s between server calls). `src/net/match.ts` is the room: reliable messages by name, the `pose` channel, and the clock from five pings. `src/online.ts` is the flow: host and guest, the pole, ready, countdown, rounds, leaving, a hidden tab. `src/ui/overlay.ts` holds the bars, countdown, note, buttons and the two dialogs.
+- Each player sees themselves on the left, so a position or angle sent over the wire is in the sender's view and the receiver mirrors it (`x` to `1200 - x`, angle to `PI - angle`).
+- Messages: `ready`, `start {go}`, `round {go, score, over, restart}`, `shot`, `hit`, `away`, `back`, `bye`, `ping`, `pong`. The host decides when a round starts, and the guest takes its score from the host. The target decides hits, the remote cowboy has no hit lines.
+- A hidden tab sends `away`. Both stop, and the host restarts the round through the countdown when nobody is away, with no score. A closing tab sends `bye`, because a dead connection takes a long time to notice.
+- Dead links: a reject means "full", a timeout means "ended" (the text also says to try the same wifi), anything else is "couldn't connect". A host whose lobby id changed while nobody joined opens a new room and a new link. Not tested: whether a socket reconnect changes the peer id, the brief and the webrtc README disagree.
+- Checked once by hand with two Chromium pages (host, guest, ready, countdown, a kill on both, next round, tab away, third player, friend leaving, dead link). No test files, see the Tests line above.
+- `qr-code` and `share-link` are copies of papchat's under `packages/`, tags `cw-`. The QR didn't redraw when its value was set, so `overlay.ts` calls `update()` after setting it, and `qr-code` finds its own `code` element if `@query` hasn't yet.
 
 ## Papit gaps to report
 
@@ -219,4 +221,5 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - `Mouse` only hears `mouseup` on the canvas, so a release outside it leaves `pressing` stuck.
 - `Keyboard.handlekeyup` throws on a key whose `keydown` it never saw, and `blur` leaves keys pressed.
 - `line-intersection` isn't in `.claude/CATALOG.md`.
+- `pap-button` has its own `display`, so the `hidden` attribute doesn't hide it. We set `style.display` as well.
 - The server's page template adds its own `<title>@papit/server</title>` first, so a page's title loses in dev. Check the static template in task 30.
