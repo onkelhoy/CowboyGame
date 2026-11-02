@@ -139,7 +139,12 @@ export class Cowboy extends GameObject {
     }
 
     get hitLines(): Target[] {
-        if (!this.alive || this.safe || this.remote) return [];
+        return this.remote ? [] : this.bodyLines;
+    }
+
+    /** The same lines for a bullet that only has to stop, a remote body is judged on the other screen. */
+    get bodyLines(): Target[] {
+        if (!this.alive || this.safe) return [];
 
         const { head, body } = this.body.hitLines;
         const forward = { x: HEAD_FORWARD, y: 0 };

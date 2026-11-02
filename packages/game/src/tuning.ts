@@ -16,9 +16,13 @@ export const GUN_LEVEL = .75;
 export const DUCK_TIME = .18;
 
 /** Below this part of the rise a release is only a feint. */
-export const DRAW_LINE = .5;
+export const DRAW_LINE = .4;
 /** Radians either way off the gun at the draw line, falling to 0 at the top. */
 export const SPREAD = 3 * Math.PI / 180;
+/** Seconds fully up before the gun goes off by itself, so nobody can stand and wait. */
+export const AUTO_FIRE = 1;
+/** How much slower he ducks after a shot he never chose, 1 is the usual speed. */
+export const AUTO_SLOW = 1.5;
 /** Seconds after a shot before a release can duck him. */
 export const RECOIL = .25;
 /** Seconds per bullet, only fully down. */

@@ -11,6 +11,8 @@ export class Bullet extends GameObject {
     readonly velocity: Point;
     /** The fly-by sound played. */
     passed = false;
+    /** It hit something and is inside it, shown for one more frame. */
+    embedded = false;
     private readonly origin: Point;
 
     constructor(x: number, y: number, readonly angle: number, readonly shooter: 1 | -1) {
@@ -33,7 +35,15 @@ export class Bullet extends GameObject {
         return { x: this.position.x, y: this.position.y };
     }
 
+    /** Stops `depth` units inside what it hit, the trail still reaches in. */
+    embed(at: Point, depth = 8) {
+        this.position.x = at.x + Math.cos(this.angle) * depth;
+        this.position.y = at.y + Math.sin(this.angle) * depth;
+        this.embedded = true;
+    }
+
     override update(dt: number) {
+        if (this.embedded) return;
         this.from.x = this.position.x;
         this.from.y = this.position.y;
         this.position.x += this.velocity.x * dt;
@@ -50,6 +60,8 @@ export class Bullet extends GameObject {
         ctx.moveTo(0, 0);
         ctx.lineTo(-Math.cos(this.angle) * travelled, -Math.sin(this.angle) * travelled);
         ctx.stroke();
+
+        if (this.embedded) return;
 
         ctx.fillStyle = "#ff9a1f";
         ctx.beginPath();

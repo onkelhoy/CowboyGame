@@ -190,6 +190,7 @@ export class Body {
         this.limb(ctx, this.rightLower, parts["pistol-arm"]);
         this.joint(ctx, this.rightUpper, parts.elbow);
         this.limb(ctx, this.head, parts.head, true);
+        if (this.ragdoll) this.crossedEyes(ctx);
         this.foot(ctx, this.rightShin);
         this.foot(ctx, this.leftShin);
     }
@@ -204,6 +205,43 @@ export class Body {
         ctx.rotate(fromTail ? Math.PI / 2 : -Math.PI / 2);
         ctx.scale(this.ratio, this.ratio);
         ctx.drawImage(image, -image.width / 2, 0);
+        ctx.restore();
+    }
+
+    /** Dead eyes: the two dots covered over and an X on each. In the head picture's own units. */
+    private crossedEyes(ctx: CanvasRenderingContext2D) {
+        const { head } = this;
+        const image = this.parts.head;
+        const m = head.worldMatrix;
+
+        ctx.save();
+        ctx.transform(m[0], m[1], m[4], m[5], m[12], m[13]);
+        ctx.translate(head.length, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.scale(this.ratio, this.ratio);
+        ctx.translate(-image.width / 2, 0);
+
+        // the picture is 140 wide in its file, whatever size it was loaded at
+        const unit = image.width / 140.23;
+        ctx.scale(unit, unit);
+
+        ctx.fillStyle = "#e0a262";
+        ctx.fillRect(77, 110, 9, 16);
+        ctx.fillStyle = "#c4834a";
+        ctx.fillRect(95, 110, 9, 16);
+
+        ctx.strokeStyle = "#2b1a14";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        for (const x of [81.5, 99.5])
+        {
+            ctx.moveTo(x - 5, 112);
+            ctx.lineTo(x + 5, 124);
+            ctx.moveTo(x + 5, 112);
+            ctx.lineTo(x - 5, 124);
+        }
+        ctx.stroke();
         ctx.restore();
     }
 

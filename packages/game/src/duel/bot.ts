@@ -11,7 +11,7 @@ export function createBot(random: () => number = Math.random) {
 
     const plan = (): Plan => {
         const kind = random();
-        const stopAt = kind < .3 ? between(FEINT) : kind < .65 ? between(SNAP) : 2;
+        const stopAt = kind < .3 ? between(FEINT) : kind < .65 ? between(SNAP) : 1;
         return { wait: .3 + random() * 1.2, stopAt };
     };
 

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { createCowboy, spread, step, type CowboyEvent, type CowboyState } from "../../src/rules";
-import { AMMO, DRAW_LINE, DUCK_TIME, RECOIL, RELOAD, RISE_TIME, SPREAD } from "../../src/tuning";
+import { AMMO, AUTO_FIRE, DRAW_LINE, DUCK_TIME, RECOIL, RELOAD, RISE_TIME, SPREAD } from "../../src/tuning";
 
 const DT = 1 / 120;
 
@@ -42,14 +42,19 @@ test("a release above the draw line fires at once, and the earlier the wilder", 
     expect(wild(.8)).toBeGreaterThan(0);
 });
 
-test("the top fires by itself, dead on, and only once", () => {
+test("the top waits, a release there is dead on, and standing still fires by itself once", () => {
     const cowboy = createCowboy();
-    const events = run(cowboy, true, RISE_TIME + .02);
+    expect(shots(run(cowboy, true, RISE_TIME + AUTO_FIRE / 2))).toEqual([]);
+
+    const events = run(cowboy, true, AUTO_FIRE / 2 + .05);
     expect(shots(events)).toEqual([{ type: "shot", wild: 0 }]);
     expect(cowboy.ammo).toBe(AMMO - 1);
 
     expect(shots(run(cowboy, true, 2))).toEqual([]);
-    expect(cowboy.ammo).toBe(AMMO - 1);
+
+    const quick = createCowboy();
+    run(quick, true, RISE_TIME + .1);
+    expect(shots(run(quick, false, DT * 2))).toEqual([{ type: "shot", wild: 0 }]);
 });
 
 test("he stays up after a shot for as long as he holds", () => {
@@ -74,7 +79,8 @@ test("recoil keeps him up even when he lets go", () => {
 
 test("after a shot he has to let go and press again to rise", () => {
     const cowboy = createCowboy();
-    run(cowboy, true, RISE_TIME + RECOIL + .1);
+    run(cowboy, true, RISE_TIME + .02);
+    run(cowboy, false, RECOIL + DT * 2);
     run(cowboy, false, DUCK_TIME + .05);
     expect(cowboy.stand).toBe(0);
 
@@ -84,7 +90,8 @@ test("after a shot he has to let go and press again to rise", () => {
 
 test("after a shot he can't shoot again until he has been fully down", () => {
     const cowboy = createCowboy();
-    run(cowboy, true, RISE_TIME + RECOIL + .1);
+    run(cowboy, true, RISE_TIME + .02);
+    run(cowboy, false, RECOIL + DT * 2);
     run(cowboy, false, DUCK_TIME / 2);
     expect(cowboy.stand).toBeGreaterThan(0);
 
@@ -93,7 +100,7 @@ test("after a shot he can't shoot again until he has been fully down", () => {
     expect(cowboy.stand).toBeLessThan(.2);
 
     // a press that's still held at the bottom rises straight away
-    expect(shots(run(cowboy, true, RISE_TIME + .05))).toEqual([{ type: "shot", wild: 0 }]);
+    expect(shots(run(cowboy, true, RISE_TIME + AUTO_FIRE + .05))).toEqual([{ type: "shot", wild: 0 }]);
 });
 
 test("a feint can rise again on the way down", () => {
@@ -142,7 +149,7 @@ test("no ammo clicks, spends nothing and leaves him exposed through the recoil",
     const cowboy = createCowboy();
     cowboy.ammo = 0;
 
-    const events = run(cowboy, true, RISE_TIME + .02);
+    const events = run(cowboy, true, RISE_TIME + AUTO_FIRE + .02);
     expect(events).toEqual([{ type: "click" }]);
     expect(cowboy.stand).toBe(1);
     expect(cowboy.recoil).toBeGreaterThan(0);

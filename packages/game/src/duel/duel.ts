@@ -81,12 +81,21 @@ export class Duel extends GameObject {
 
     private test(bullet: Bullet) {
         const target = bullet.shooter === 1 ? this.right : this.left;
-        const hit = firstHit(bullet.from, bullet.to, [...target.hitLines, ...this.barrels]);
-
-        if (hit)
+        if (bullet.embedded)
         {
             this.remove(bullet);
             this.bullets.delete(bullet);
+            return;
+        }
+
+        const hit = firstHit(bullet.from, bullet.to, [...target.bodyLines, ...this.barrels]);
+
+        if (hit)
+        {
+            bullet.embed(hit);
+            // a body on the other screen is decided over there, here the bullet only stops in it
+            if (hit.kind !== "barrel" && target.remote) return;
+
             const struck = hit.kind === "barrel" ? null : target;
             if (hit.kind !== "barrel") target.die(hit.kind, bullet.velocity.x * BULLET_PUSH, bullet.velocity.y * BULLET_PUSH);
             this.events.hit(hit, bullet, struck);
