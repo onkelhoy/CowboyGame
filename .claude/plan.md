@@ -214,6 +214,7 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 
 ## Papit gaps to report
 
+- `@papit/webrtc` calls `crypto.randomUUID`, which is missing on a page that isn't secure, so plain `http://` throws "not a function" instead of a clear message. A phone on a LAN address hits this too. `views/game/index.html` redirects github.io to https.
 - No QR or share link component.
 - `@papit/webrtc` has no round trip or clock helper.
 - The `game` package template in `@papit/create` is out of date, see the technical notes.

@@ -2,8 +2,11 @@ import type { Camera } from "@papit/game-engine";
 
 import { WORLD } from "../tuning";
 
-/** Where the pole shot looks, and how much of the world it shows. */
-const POLE = { x: WORLD.width / 2, y: 430, width: 560, height: 340 };
+/**
+ * Where the pole shot looks, and how much of the world it shows. `widest` keeps the cowboys off screen
+ * on wide phones, and `top` keeps the signs in frame when that leaves the view short.
+ */
+const POLE = { x: WORLD.width / 2, y: 430, width: 560, height: 340, widest: 640, top: 260 };
 
 const ease = (t: number) => t * t * (3 - 2 * t);
 
@@ -41,10 +44,14 @@ export class Stage {
 
                 const view = this.view;
                 const map = Math.min(camera.width / WORLD.width, camera.height / WORLD.height);
-                const pole = Math.min(camera.width / POLE.width, camera.height / POLE.height);
+                const pole = Math.max(
+                    Math.min(camera.width / POLE.width, camera.height / POLE.height),
+                    camera.width / POLE.widest,
+                );
+                const poleY = Math.min(POLE.y, POLE.top + camera.height / pole / 2);
 
                 camera.position.x = POLE.x + (WORLD.width / 2 - POLE.x) * view;
-                camera.position.y = POLE.y + (WORLD.height / 2 - POLE.y) * view;
+                camera.position.y = poleY + (WORLD.height / 2 - poleY) * view;
                 camera.zoom = pole + (map - pole) * view;
             },
         };
