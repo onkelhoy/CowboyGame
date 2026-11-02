@@ -19,3 +19,9 @@ test("holding to the top kills a standing cowboy and flies over a ducked one", a
     await expect.poll(alive, { timeout: 3000 }).toBe(false);
     await page.keyboard.up(" ");
 });
+
+test("?bot gives an opponent who moves", async ({ page }) => {
+    await page.goto("views/game/?bot");
+    await page.waitForFunction(() => (window as any).cowboy);
+    await page.waitForFunction(() => (window as any).cowboy.right.state.stand > 0, undefined, { timeout: 8000 });
+});

@@ -2,6 +2,7 @@ import { Camera, GameEngine } from "@papit/game-engine";
 
 import { Cowboy } from "./cowboy/cowboy";
 import { loadParts, OUTFITS } from "./cowboy/outfit";
+import { createBot } from "./duel/bot";
 import { Duel } from "./duel/duel";
 import { Hold } from "./input";
 import { fitWorld } from "./scene/fit";
@@ -19,6 +20,12 @@ export async function startGame() {
 
     const hold = new Hold(engine.canvas);
     left.control = () => hold.held;
+
+    if (new URLSearchParams(location.search).has("bot"))
+    {
+        const bot = createBot();
+        right.control = () => bot(right.state, engine.deltaTime);
+    }
 
     const duel = new Duel(left, right, {
         action() { },

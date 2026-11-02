@@ -4,7 +4,7 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 7. Tasks 1 to 10 are one batch the owner asked for, so run them in a row, committing after each, without stopping for "do next task".
+- **Next:** task 8. Tasks 1 to 10 are one batch the owner asked for, so run them in a row, committing after each, without stopping for "do next task".
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
 
