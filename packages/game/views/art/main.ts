@@ -2,7 +2,8 @@
 const PALETTES = [
     { name: "noon", label: "High noon", colours: ["#2f9fc7", "#7fcdd3", "#d9613a", "#ecb765"] },
     { name: "sunset", label: "Sunset", colours: ["#352a70", "#e2604f", "#4a2152", "#d9693f"] },
-    { name: "gold", label: "Gold", colours: ["#f08a3c", "#f9cd86", "#b9472f", "#e8b873"] },
+    { name: "gold", label: "Morning", colours: ["#f08a3c", "#f9cd86", "#b9472f", "#e8b873"] },
+    { name: "night", label: "Night", colours: ["#0b1030", "#33407a", "#1b2147", "#3f4a80"] },
 ];
 
 const PIECES = [

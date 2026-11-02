@@ -29,11 +29,15 @@
       "header": "Utmana en vän",
       "send": "Skicka länken till din vän, eller låt dem skanna koden.",
       "connecting": "Ansluter...",
-      "left": "Din vän lämnade. Skicka länken igen för en ny duell.",
+      "left": "Din vän lämnade. Skicka länken för en ny duell.",
       "ready": "Jag är redo",
       "waiting": "Väntar på {name}...",
       "friend": "din vän",
-      "link": "Inbjudan"
+      "link": "Inbjudan",
+      "ended": "Den duellen är över. Skicka den här nya länken för att utmana din vän. Når ni inte varandra, prova samma wifi.",
+      "wantedFor": "En värdig motståndare",
+      "reward": "Belöning: skryträtt",
+      "wanted": "EFTERLYST"
     },
     "status": {
       "joining": "Går med i duellen...",
@@ -52,16 +56,9 @@
       "loseDuel": "De vinner duellen!"
     },
     "message": {
-      "leftHeader": "Din vän lämnade",
-      "leftText": "Spelet är slut. Du kan starta ett eget.",
-      "newGame": "Nytt spel",
       "startNew": "Starta ett nytt spel",
       "fullHeader": "Spelet är fullt",
-      "fullText": "Två cowboys är redan med i duellen. Be om en egen duell.",
-      "endedHeader": "Spelet har tagit slut",
-      "endedText": "Be din vän om en ny länk. Om de fortfarande väntar kanske era nätverk inte når varandra: prova samma wifi.",
-      "failedHeader": "Kunde inte ansluta",
-      "failedText": "Vissa nätverk blockerar den här sortens anslutning. Prova samma wifi som din vän."
+      "fullText": "Två cowboys är redan med i duellen. Be om en egen duell."
     }
   }
 }

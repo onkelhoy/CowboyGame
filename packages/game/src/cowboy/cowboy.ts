@@ -2,7 +2,7 @@ import { GameObject, type Layer2D } from "@papit/game-engine";
 
 import type { Point, Target } from "../duel/hits";
 import { createCowboy, step, type CowboyEvent } from "../rules";
-import { COWBOY_SCALE, DUCK_TIME, GROUND_Y, HEAD_FORWARD, KICK_FADE, RISE_TIME, WORLD } from "../tuning";
+import { COWBOY_SCALE, DUCK_TIME, FLY_OFF, GROUND_Y, HEAD_FORWARD, KICK_FADE, LIFT, RISE_TIME, THROW, WORLD } from "../tuning";
 import { Body } from "./body";
 import type { Parts } from "./outfit";
 
@@ -98,10 +98,10 @@ export class Cowboy extends GameObject {
         const { x: px, y: py } = this.position;
         const size = this.scale.y;
         this.body.fall({
-            left: (this.side === 1 ? 20 - px : px - WORLD.width + 20) / size,
-            right: (this.side === 1 ? WORLD.width - 20 - px : px - 20) / size,
+            left: (this.side === 1 ? -FLY_OFF - px : px - WORLD.width - FLY_OFF) / size,
+            right: (this.side === 1 ? WORLD.width + FLY_OFF - px : px + FLY_OFF) / size,
             bottom: 0,
-        }, part === "head" ? "top" : "neck", x / this.scale.x, y / size);
+        }, part === "head" ? "top" : "neck", x / this.scale.x, y / size, Math.sign(x) * THROW / this.scale.x, -LIFT / size);
     }
 
     /** Back on his feet with a full gun. */

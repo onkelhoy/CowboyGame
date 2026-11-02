@@ -8,8 +8,6 @@ const HEIGHT = 96;
 /** Seconds of the sign dropping into place. */
 const DROP = .22;
 
-const BOARD = "#c98f4e";
-const BOARD_DARK = "#54301a";
 const INK = "#3a2010";
 
 /** The win sign. It's in the world and tracks the dead body, it stays on screen. */
@@ -17,6 +15,10 @@ export class Banner extends GameObject {
     private text = "";
     private age = 0;
     private follow: (() => Point) | null = null;
+
+    constructor(private planks: [HTMLImageElement, HTMLImageElement]) {
+        super();
+    }
 
     show(text: string, follow: () => Point) {
         this.text = text;
@@ -51,21 +53,9 @@ export class Banner extends GameObject {
         ctx.translate(0, -60 * landing * landing);
         ctx.rotate(-.02);
 
-        ctx.fillStyle = BOARD;
-        ctx.strokeStyle = BOARD_DARK;
-        ctx.lineWidth = 6;
-        ctx.beginPath();
-        ctx.roundRect(-WIDTH / 2, -HEIGHT / 2, WIDTH, HEIGHT, 8);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = BOARD_DARK;
-        for (const x of [-1, 1]) for (const y of [-1, 1])
-        {
-            ctx.beginPath();
-            ctx.arc(x * (WIDTH / 2 - 16), y * (HEIGHT / 2 - 16), 4, 0, Math.PI * 2);
-            ctx.fill();
-        }
+        const [top, bottom] = this.planks;
+        ctx.drawImage(top, -WIDTH / 2, -HEIGHT / 2 - 6, WIDTH, HEIGHT / 2 + 12);
+        ctx.drawImage(bottom, -WIDTH / 2 + 8, -6, WIDTH, HEIGHT / 2 + 12);
 
         ctx.font = "40px Rye, Georgia, serif";
         ctx.textAlign = "center";

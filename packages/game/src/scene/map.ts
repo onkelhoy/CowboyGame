@@ -2,7 +2,7 @@ import { GameObject } from "@papit/game-engine";
 
 import { loadImages } from "../assets";
 import { GROUND_Y, WORLD } from "../tuning";
-import { Backdrop } from "./backdrop";
+import { Backdrop, Lanterns } from "./backdrop";
 import { Tumbleweed } from "./dust";
 import { Pole } from "./pole";
 import { Prop } from "./prop";
@@ -21,6 +21,7 @@ export async function createMap() {
     back.add(new Backdrop());
     back.add(new Prop(props.house, 130, GROUND_Y + 4, .62));
     back.add(new Prop(props.house, width - 130, GROUND_Y + 4, .62, true));
+    back.add(new Lanterns());
     back.add(new Prop(props.cactus, width * .39, GROUND_Y + 3, .62));
     back.add(new Prop(props.grass, width * .39 + 42, GROUND_Y + 3, .42));
     back.add(new Prop(props.rock, width * .36 - 18, GROUND_Y + 5, .6));
@@ -40,5 +41,5 @@ export async function createMap() {
     front.add(new Prop(props["skull-human"], BARREL_X + 58, GROUND_Y + 6, .3));
     front.add(new Tumbleweed(props.dust));
 
-    return { back, actors, front, pole };
+    return { back, actors, front, pole, planks: [props["plank-1"], props["plank-2"]] as [HTMLImageElement, HTMLImageElement] };
 }

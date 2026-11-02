@@ -1,6 +1,7 @@
 import { GameObject, type Layer2D } from "@papit/game-engine";
 
 import type { Cowboy } from "./cowboy/cowboy";
+import type { Stage } from "./scene/fit";
 import { AMMO, WORLD } from "./tuning";
 
 const STEP = Math.PI * 2 / AMMO;
@@ -15,6 +16,7 @@ const LINE = 4;
 const STEEL = "#a9afb8";
 const STEEL_SHINE = "#cfd4da";
 const HOLE = "#4a4650";
+const SCORE_GAP = 110;
 const BRASS = "#ffd23f";
 const BRASS_DARK = "#d99a1c";
 
@@ -26,7 +28,7 @@ export class Hud extends GameObject {
     /** Rounds won, yours first. Null when nothing is being counted. */
     score: (() => [number, number] | null) | null = null;
 
-    constructor(private cowboy: Cowboy) {
+    constructor(private cowboy: Cowboy, private stage: Stage) {
         super();
     }
 
@@ -38,25 +40,31 @@ export class Hud extends GameObject {
 
     override render(layer: Layer2D | object) {
         const { ctx } = layer as Layer2D;
-        if (this.hidden) return;
+        // it's a thing on the map, so it stays out of the close up on a body
+        if (this.hidden || this.stage.focus > .02) return;
 
+        ctx.save();
+        ctx.translate(0, Math.max(0, this.stage.top));
         const score = this.score?.();
         if (score) this.tally(ctx, score);
         if (this.cowboy.alive) this.cylinder(ctx);
+        ctx.restore();
     }
 
-    /** Rounds won, as two numbers under the cylinder. */
+    /** Rounds won, a number on each side of the cylinder. Under it they'd run into the pole on a wide phone. */
     private tally(ctx: CanvasRenderingContext2D, [yours, theirs]: [number, number]) {
-        ctx.font = "30px Rye, Georgia, serif";
+        ctx.font = "44px Rye, Georgia, serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.lineJoin = "round";
         ctx.lineWidth = 7;
         ctx.strokeStyle = OUTLINE;
         ctx.fillStyle = BRASS;
-        const text = `${yours}  -  ${theirs}`;
-        ctx.strokeText(text, CENTER.x, CENTER.y + 100);
-        ctx.fillText(text, CENTER.x, CENTER.y + 100);
+        for (const [text, side] of [[yours, -1], [theirs, 1]] as const)
+        {
+            ctx.strokeText(String(text), CENTER.x + side * SCORE_GAP, CENTER.y);
+            ctx.fillText(String(text), CENTER.x + side * SCORE_GAP, CENTER.y);
+        }
     }
 
     /** The old game's cylinder, flat colours in one thick outline, like a cartoon. */

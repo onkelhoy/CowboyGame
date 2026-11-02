@@ -40,9 +40,17 @@ export const FRICTION = .99;
 /** How much of the bullet's speed goes into the body. */
 export const BULLET_PUSH = .5;
 
+/** Milliseconds between two hits for a draw. Later than that the first one hit is dead and the other lives. */
+export const DRAW_WINDOW = 150;
+/** World units per second the whole body is thrown back with, on top of the bullet's push on the point it hit. */
+export const THROW = 300;
+export const LIFT = 330;
+/** How far past the edge of the map a body can land. */
+export const FLY_OFF = 60;
+
 /** How slow the game runs right after a hit. */
 export const SLOW_SCALE = .1;
-/** Real seconds of slow motion, a second hit inside them makes a draw. */
+/** Real seconds of slow motion. */
 export const SLOW_TIME = 1.8;
 /** Real seconds back up to full speed. */
 export const RAMP_TIME = .6;

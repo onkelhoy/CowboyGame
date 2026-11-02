@@ -3,6 +3,7 @@ import "@papit/dialog";
 import "@cowboy/qr-code";
 import "@cowboy/share-link";
 
+import { blobOf } from "../assets";
 import type { Hold } from "../input";
 import { t } from "../text";
 
@@ -26,11 +27,21 @@ const html = () => `
         <pap-button id="ready" color="primary">${t("invite.ready")}</pap-button>
         <pap-button id="again" variant="outline" color="primary">${t("invite.link")}</pap-button>
     </div>
-    <pap-dialog id="invite" header="${t("invite.header")}" close-outside-click>
-        <p id="invite-text"></p>
-        <cw-qr-code></cw-qr-code>
-        <p id="invite-link"></p>
-        <cw-share-link></cw-share-link>
+    <pap-dialog id="invite" close-outside-click>
+        <div slot="header" class="wanted">
+            <img class="skull" alt="">
+            <div><b>${t("invite.wanted")}</b><span>${t("invite.wantedFor")}</span></div>
+            <img class="skull" alt="">
+        </div>
+        <div class="poster">
+            <cw-qr-code></cw-qr-code>
+            <div>
+                <p id="invite-text"></p>
+                <cw-share-link></cw-share-link>
+                <p id="invite-link"></p>
+                <p class="reward">${t("invite.reward")}</p>
+            </div>
+        </div>
     </pap-dialog>
     <pap-dialog id="message">
         <p id="message-text"></p>
@@ -51,6 +62,10 @@ export function mountOverlay(hold: Hold) {
     const invite = find<Dialog>("#invite"), message = find<Dialog>("#message");
     const qr = find<HTMLElement & { value: string }>("cw-qr-code");
     const share = find<HTMLElement & { link: string }>("cw-share-link");
+
+    void blobOf("/images/props/skull.svg", "image/svg+xml").then(url => {
+        if (url) for (const skull of root.querySelectorAll<HTMLImageElement>(".skull")) skull.src = url;
+    });
 
     let sticky = false;
     for (const dialog of [invite, message])

@@ -29,11 +29,15 @@
       "header": "Challenge a friend",
       "send": "Send this link to your friend, or let them scan the code.",
       "connecting": "Connecting...",
-      "left": "Your friend left. Send the link again for another duel.",
+      "left": "Your friend left. Send this link for another duel.",
       "ready": "I'm ready",
       "waiting": "Waiting for {name}...",
       "friend": "your friend",
-      "link": "Invite link"
+      "link": "Invite link",
+      "ended": "That duel is over. Send this new link to challenge your friend. If you can't reach each other, try the same wifi.",
+      "wantedFor": "A worthy opponent",
+      "reward": "Reward: bragging rights",
+      "wanted": "WANTED"
     },
     "status": {
       "joining": "Joining the duel...",
@@ -52,16 +56,9 @@
       "loseDuel": "They win the duel!"
     },
     "message": {
-      "leftHeader": "Your friend left",
-      "leftText": "The game is over. You can start one of your own.",
-      "newGame": "New game",
       "startNew": "Start a new game",
       "fullHeader": "This game is full",
-      "fullText": "Two cowboys are already in this duel. Ask for a duel of your own.",
-      "endedHeader": "This game has ended",
-      "endedText": "Ask your friend for a new link. If they're still waiting, your networks may not be able to reach each other: try the same wifi.",
-      "failedHeader": "Couldn't connect",
-      "failedText": "Some networks block this kind of connection. Try the same wifi as your friend."
+      "fullText": "Two cowboys are already in this duel. Ask for a duel of your own."
     }
   }
 }

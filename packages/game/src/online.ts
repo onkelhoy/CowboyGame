@@ -34,19 +34,23 @@ export type OnlineParts = {
 };
 
 type Phase = "connecting" | "pole" | "countdown" | "duel";
-type Failure = "full" | "ended" | "failed";
+type Failure = "full" | "gone";
 type RoundMessage = { go?: number; score: [number, number]; over?: boolean; restart?: boolean };
 
 const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 const mirrorX = (x: number) => WORLD.width - x;
 const mirrorAngle = (angle: number) => Math.PI - angle;
 
+/**
+ * Milliseconds to keep trying a link. A fresh player can sit in a lobby of their own for seconds before
+ * the two merge, and someone coming back from a refresh can find their old self still in the room.
+ */
+const JOIN_FOR = 18_000;
+const JOIN_GAP = 3000;
+
 /** What went wrong with a link, from the words `joinRoom` gives. */
 function failure(error: unknown): Failure {
-    const text = String((error as Error)?.message ?? error);
-    if (/not accepted|rejected/i.test(text)) return "full";
-    if (/timed out|unreachable|lost|not in a network/i.test(text)) return "ended";
-    return "failed";
+    return /not accepted|rejected/i.test(String((error as Error)?.message ?? error)) ? "full" : "gone";
 }
 
 /**
@@ -71,9 +75,11 @@ export class Online {
     private tries = 0;
     private asHost = false;
     private shown = "";
+    private watcher: ReturnType<typeof setInterval> | undefined;
 
     constructor(private parts: OnlineParts) {
         this.ui = mountOverlay(parts.hold);
+        parts.kill.clock = () => this.match?.shared ?? performance.now();
         parts.hud.score = () => this.phase === "pole" || this.phase === "connecting" ? null : this.score;
 
         this.ui.onReady(() => {
@@ -108,7 +114,29 @@ export class Online {
         this.ui.invite.open();
         await this.lobby.start();
         await this.open();
-        setInterval(() => this.watch(), 3000);
+        this.watching();
+    }
+
+    private watching() {
+        this.watcher ??= setInterval(() => this.watch(), 3000);
+    }
+
+    /** Nobody's left to play with, so this player is the one with a link to send now. */
+    private async rehost(words: string) {
+        const old = this.match;
+        this.match = null;
+        old?.close();
+
+        this.asHost = true;
+        this.shown = "";
+        history.replaceState(null, "", this.fresh());
+        this.ui.note("");
+        this.ui.invite.text(words);
+        this.ui.invite.open();
+
+        await this.open();
+        this.ui.invite.text(words);
+        this.watching();
     }
 
     /** The guest's way in: the link they were sent. */
@@ -117,7 +145,8 @@ export class Online {
         this.ui.note(t("status.joining"));
         await this.lobby.start();
 
-        for (let attempt = 1; ; attempt++)
+        const until = performance.now() + JOIN_FOR;
+        for (;;)
         {
             try
             {
@@ -131,9 +160,8 @@ export class Online {
             {
                 console.warn("could not join", error);
                 const reason = failure(error);
-                // the lobby can still be finding its friends, a second try is cheap
-                if (reason === "full" || attempt >= 2) return this.fail(reason);
-                await wait(2500);
+                if (performance.now() >= until) return reason === "full" ? this.full() : this.rehost(t("invite.ended"));
+                await wait(JOIN_GAP);
             }
         }
     }
@@ -144,8 +172,8 @@ export class Online {
         const { name } = settings();
         const room = await this.lobby.room({
             name: "duel",
-            // a third player is turned away, the room is one against one
-            accept: (_newcomer, info) => info.size < 2,
+            // a third player is turned away, but someone who only refreshed is still counted for a while
+            accept: () => !this.match?.peer,
             profile: { name },
             media: { channels: { pose: { ordered: false, maxRetransmits: 0 } } },
         });
@@ -227,6 +255,7 @@ export class Online {
     /** They left, or their link broke. */
     private gone(host: boolean) {
         if (!this.match) return;
+        this.match.peer = null;
         this.reset();
         this.phase = "pole";
         this.ready = [false, false];
@@ -243,10 +272,7 @@ export class Online {
             return;
         }
 
-        this.match = null;
-        this.ui.message(t("message.leftHeader"), t("message.leftText"), [
-            { label: t("message.newGame"), run: () => location.assign(this.fresh()) },
-        ]);
+        void this.rehost(t("invite.left"));
     }
 
     private fresh() {
@@ -255,13 +281,11 @@ export class Online {
         return url.toString();
     }
 
-    private fail(reason: Failure) {
+    private full() {
         this.ui.note("");
-        const choice = [{ label: t("message.startNew"), run: () => location.assign(this.fresh()) }];
-
-        if (reason === "full") this.ui.message(t("message.fullHeader"), t("message.fullText"), choice);
-        else if (reason === "ended") this.ui.message(t("message.endedHeader"), t("message.endedText"), choice);
-        else this.ui.message(t("message.failedHeader"), t("message.failedText"), choice);
+        this.ui.message(t("message.fullHeader"), t("message.fullText"), [
+            { label: t("message.startNew"), run: () => location.assign(this.fresh()) },
+        ]);
     }
 
     // ------------------------------------------------------------------ the pole
@@ -370,17 +394,18 @@ export class Online {
 
     /** One of theirs hit us, the one who gets shot decides. */
     hit(hit: Hit, bullet: Bullet) {
-        this.match?.send("hit", { kind: hit.kind, x: hit.x, y: hit.y, vx: bullet.velocity.x, vy: bullet.velocity.y, a: bullet.angle });
-        this.parts.kill.strike(this.parts.left, hit, bullet.angle);
+        const at = this.parts.kill.clock();
+        this.match?.send("hit", { kind: hit.kind, x: hit.x, y: hit.y, vx: bullet.velocity.x, vy: bullet.velocity.y, a: bullet.angle, at });
+        this.parts.kill.strike(this.parts.left, hit, bullet.angle, at);
     }
 
     /** They told us they were hit, in their own view of the map. */
-    private theyAreHit({ kind, x, y, vx, vy, a }: { kind: "head" | "body"; x: number; y: number; vx: number; vy: number; a: number }) {
+    private theyAreHit({ kind, x, y, vx, vy, a, at }: { kind: "head" | "body"; x: number; y: number; vx: number; vy: number; a: number; at: number }) {
         const { right, kill } = this.parts;
-        if ((this.phase !== "duel" && !kill.active) || !right.alive) return;
+        if ((this.phase !== "duel" && !kill.active) || !right.alive || kill.closed(at)) return;
 
         right.die(kind, -vx * BULLET_PUSH, vy * BULLET_PUSH);
-        kill.strike(right, { kind, x: mirrorX(x), y }, mirrorAngle(a));
+        kill.strike(right, { kind, x: mirrorX(x), y }, mirrorAngle(a), at);
     }
 
     /** Called when the win sign goes up. Counts the round and says what's on it. */

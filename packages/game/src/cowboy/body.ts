@@ -74,7 +74,8 @@ export class Body {
     }
 
     /** Lets go of the pose. `hit` is the joint the bullet pushes, in units per second. */
-    fall(bounds: RagdollBounds, hit: "top" | "neck", x: number, y: number) {
+    /** `x` and `y` push the point the bullet hit, `throwX` and `throwY` the whole body. */
+    fall(bounds: RagdollBounds, hit: "top" | "neck", x: number, y: number, throwX: number, throwY: number) {
         const { head, torso, leftUpper, leftLower, rightUpper, rightLower, leftThigh, leftShin, rightThigh, rightShin } = this;
 
         this.ragdoll = new Ragdoll<Joint>({
@@ -91,6 +92,7 @@ export class Body {
             "right foot": rightShin.tail,
         }, STICKS, bounds);
         this.ragdoll.push(hit, x, y);
+        for (const name in this.ragdoll.points) this.ragdoll.push(name as Joint, throwX, throwY);
 
         for (const limb of this.limbs) limb.weight = 0;
         this.chains = [

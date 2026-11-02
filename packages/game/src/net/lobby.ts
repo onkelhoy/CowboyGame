@@ -1,7 +1,7 @@
 import { signal } from "@papit/signals";
 import { Client } from "@papit/webrtc";
 
-import { APP, LOBBY_NAME, RACE_GUARD, RESCAN, RETRY_MAX, RETRY_MIN, RTC, SERVER_GAP, signalUrl } from "./config";
+import { APP, CALL_TIMEOUT, LOBBY_NAME, RACE_GUARD, RESCAN, RETRY_MAX, RETRY_MIN, RTC, SERVER_GAP, signalUrl } from "./config";
 
 type Info = Awaited<ReturnType<Client["list"]>>[number];
 export type Room = Client;
@@ -43,6 +43,7 @@ export class Lobby {
         const client = this.client = new Client({
             url: signalUrl(),
             rtc: RTC,
+            timeout: CALL_TIMEOUT,
             topology: "chord",
             profile: this.profile,
             // only the younger of two lobbies asks to merge, so the older one says yes
@@ -102,19 +103,17 @@ export class Lobby {
     private async enter(client: Client) {
         await client.ready;
 
-        for (let round = 0; round < 2 && !client.network; round++)
+        // a lobby that doesn't answer is most likely empty, a live one is merged with later by the guard
+        const [lobby] = await this.lobbies(client);
+        if (lobby)
         {
-            for (const lobby of await this.lobbies(client))
+            try
             {
-                try
-                {
-                    await this.call(() => client.join(lobby.id));
-                }
-                catch (error)
-                {
-                    console.warn("lobby: could not join", lobby.id, error);
-                }
-                break;
+                await this.call(() => client.join(lobby.id));
+            }
+            catch (error)
+            {
+                console.warn("lobby: could not join", lobby.id, error);
             }
         }
 

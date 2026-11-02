@@ -1,3 +1,5 @@
+import { currentPalette, tinted } from "./scene/palette";
+
 /** Assets load through `fetch`, the only way the static build finds them under its base. */
 export type Images<T extends string> = Record<T, HTMLImageElement>;
 
@@ -10,6 +12,9 @@ async function loadImage(url: string, recolour: Recolour) {
 
     let svg = await response.text();
     for (const [from, to] of Object.entries(recolour)) svg = svg.replaceAll(from, to);
+
+    const { tint } = currentPalette();
+    if (tint) svg = tinted(svg, tint);
 
     const image = new Image();
     image.src = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));

@@ -55,13 +55,13 @@ export async function startGame() {
     saveSettings();
     mountCorner(sound, hold);
 
-    const hud = new Hud(left);
+    const hud = new Hud(left, stage);
     hud.hidden = playing;
 
     let online: Online | null = null;
     const blood = new Blood();
     const pools = new BloodPools();
-    const banner = new Banner();
+    const banner = new Banner(map.planks);
 
     const clear = () => {
         kill.reset();
@@ -73,6 +73,7 @@ export async function startGame() {
     const kill: Kill = new Kill({
         engine, sound, blood, pools, banner,
         cowboys: [left, right],
+        follow: target => stage.follow(target),
         text: winner => online ? online.banner(winner) : winner === left ? t("round.win") : winner ? t("round.lose") : t("round.draw"),
         done() {
             if (online) online.roundDone();

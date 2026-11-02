@@ -47,13 +47,57 @@ canvas {
     top: calc(env(safe-area-inset-top) + 8px);
     right: calc(env(safe-area-inset-right) + 8px);
     display: flex;
-    gap: 4px;
-    color: #2b1d14;
+    gap: 6px;
 }
 
+#corner pap-button {
+    --on-background: #3a2010;
+    border-radius: 50%;
+    background: #f3e3bd;
+    color: #3a2010;
+    box-shadow: 0 3px 0 #3a2010;
+}
+
+/* set on the icon itself, the button gives its content a light colour of its own */
 #corner pap-icon {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
+    color: #14100c;
+}
+
+/* every dialog is a poster nailed up in town */
+pap-dialog {
+    --background: #f3e3bd;
+    --foreground: #3a2010;
+    --on-background: #3a2010;
+    --primary: #54301a;
+    --on-primary: #fbe6bd;
+    color: #3a2010;
+    font-family: Rye, Georgia, serif;
+}
+
+pap-dialog::part(dialog) {
+    max-height: 96dvh;
+    border: 0;
+    border-radius: 0;
+    outline: 3px solid #3a2010;
+    outline-offset: -10px;
+    background: #f3e3bd;
+    color: #3a2010;
+    box-shadow: 0 8px 0 #20130c;
+}
+
+pap-dialog::part(header) {
+    padding-inline: 24px;
+    font-family: Rye, Georgia, serif;
+}
+
+pap-dialog::part(main) {
+    padding-inline: 24px;
+}
+
+pap-dialog pap-button {
+    font-family: Rye, Georgia, serif;
 }
 
 pap-dialog .row {
@@ -199,7 +243,7 @@ pap-dialog input[type="range"] {
     pointer-events: none;
     color: #fbe6bd;
     font: 30vmin Rye, Georgia, serif;
-    text-shadow: 0 .04em 0 #54301a, 0 0 .2em rgba(0, 0, 0, .5);
+    text-shadow: 0 .05em 0 #3a2010;
 }
 
 #count.pop {
@@ -218,12 +262,12 @@ pap-dialog input[type="range"] {
     bottom: calc(env(safe-area-inset-bottom) + 18px);
     transform: translateX(-50%);
     max-width: min(90vw, 460px);
-    padding: 10px 18px;
-    border-radius: 999px;
-    background: rgba(43, 29, 20, .88);
-    color: #fbe6bd;
-    font: 15px Georgia, serif;
+    padding: 8px 18px;
+    background: #f3e3bd;
+    color: #3a2010;
+    font: 15px Rye, Georgia, serif;
     text-align: center;
+    box-shadow: 0 4px 0 #3a2010;
 }
 
 #note[hidden],
@@ -243,18 +287,94 @@ pap-dialog input[type="range"] {
 #actions pap-button {
     --primary: #54301a;
     --on-primary: #fbe6bd;
+    border-radius: 2px;
+    background: #cec16c;
+    color: #3a2010;
     font-family: Rye, Georgia, serif;
+    box-shadow: 0 4px 0 #3a2010;
+}
+
+.wanted {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+}
+
+.wanted b {
+    display: block;
+    font-size: 34px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .04em;
+}
+
+.wanted span {
+    font-size: 15px;
+}
+
+.wanted .skull {
+    width: 44px;
+    height: 41px;
+}
+
+.poster {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    min-width: min(82vw, 320px);
+    text-align: center;
+}
+
+.poster > div {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+}
+
+.poster p {
+    margin: 0;
 }
 
 #invite cw-qr-code {
-    margin-inline: auto;
-    inline-size: min(100%, 44vh);
+    inline-size: min(100%, 44vh, 240px);
+    padding: 8px;
+    border: 3px solid #3a2010;
+    background: #f3e3bd;
+}
+
+#invite cw-qr-code::part(code) {
+    border-radius: 0;
+    background: #f3e3bd;
+    color: #20130c;
 }
 
 #invite-link {
-    margin: 8px 0;
-    font-size: 12px;
+    max-width: 320px;
+    font: 11px Georgia, serif;
     word-break: break-all;
     user-select: all;
     opacity: .7;
+}
+
+.reward {
+    font-size: 15px;
+}
+
+/* a sideways phone has no height to spare, the code goes beside the words */
+@media (orientation: landscape) and (max-height: 500px) {
+    .poster {
+        grid-template-columns: auto minmax(0, 300px);
+        align-items: center;
+    }
+
+    #invite cw-qr-code {
+        inline-size: min(52dvh, 200px);
+    }
+
+    .wanted b {
+        font-size: 26px;
+    }
 }

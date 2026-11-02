@@ -24,7 +24,9 @@ export class Backdrop extends GameObject {
         const c = this.colours;
 
         sky(ctx, c);
+        if (c.night) stars(ctx);
         sun(ctx, c);
+        if (c.night) craters(ctx, c);
 
         ctx.fillStyle = c.cloud;
         for (const [x, y, width] of CLOUDS) cloud(ctx, x, y, width);
@@ -33,6 +35,58 @@ export class Backdrop extends GameObject {
         row(ctx, NEAR, c.near);
         ground(ctx, c);
     }
+}
+
+/** Where the houses' lanterns hang. */
+const LANTERN_X = 223, LANTERN_Y = 398;
+
+/** The light of the lanterns on the balconies, flat rings like the sun's. */
+export class Lanterns extends GameObject {
+    private night = currentPalette().night === true;
+
+    override render(layer: Layer2D | object) {
+        if (!this.night) return;
+
+        const { ctx } = layer as Layer2D;
+        for (const x of [LANTERN_X, WORLD.width - LANTERN_X])
+        {
+            for (const [radius, alpha] of [[92, .1], [58, .16], [30, .3]] as const)
+            {
+                ctx.fillStyle = `rgba(255, 214, 107, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(x, LANTERN_Y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+}
+
+/** Stars over three screens, the same ones every time, and a few of them twinkle. */
+function stars(ctx: CanvasRenderingContext2D) {
+    const time = performance.now() / 700;
+    ctx.fillStyle = "#f4f1da";
+
+    for (let i = 0; i < 260; i++)
+    {
+        const x = -1400 + (i * 193.7) % 4000;
+        const y = (i * i * 37.3) % (GROUND_Y - 150);
+        const size = i % 7 === 0 ? 3.5 : i % 3 === 0 ? 2.5 : 1.5;
+        if (i % 11 === 0 && Math.sin(time + i) < -.2) continue;
+        ctx.fillRect(x, y, size, size);
+    }
+}
+
+function craters(ctx: CanvasRenderingContext2D, c: Palette) {
+    const x = WORLD.width * .68, y = 170;
+    ctx.fillStyle = c.sun[1];
+    ctx.globalAlpha = .18;
+    for (const [dx, dy, radius] of [[-22, -14, 15], [20, 12, 22], [-14, 32, 9], [24, -32, 7]] as const)
+    {
+        ctx.beginPath();
+        ctx.arc(x + dx, y + dy, radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
 }
 
 function sky(ctx: CanvasRenderingContext2D, c: Palette) {

@@ -7,6 +7,11 @@ export const RTC: RTCConfiguration = { iceServers: [{ urls: "stun:stun.l.google.
 
 /** The signal server drops messages that come less than 200 ms apart, so ours are spaced. */
 export const SERVER_GAP = 1000;
+/**
+ * Milliseconds before a server call gives up. A lobby whose last player just left stays listed for a
+ * while, and waiting out the default 15 s on it is the long wait for a link.
+ */
+export const CALL_TIMEOUT = 7000;
 export const RACE_GUARD = 2000;
 export const RESCAN = 20_000;
 export const RETRY_MIN = 3000;

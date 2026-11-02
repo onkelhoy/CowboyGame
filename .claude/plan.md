@@ -42,7 +42,7 @@ All in one `tuning.ts`, in seconds and world units, tuned by playing. The world 
 
 ### The kill
 
-1. Hit: `engine.timeScale` drops to 0.1 on both screens. The cowboy starts to reel and blood hangs in the air. Music dips and the slow motion sound plays.
+1. Hit: `engine.timeScale` drops to 0.1 on both screens and the camera closes in and follows the body. The cowboy starts to reel and blood hangs in the air. Music dips and the slow motion sound plays.
 2. About 1.8 s of real time: the win screen appears above the loser. It's anchored to the dead body and follows it as the bullet pushes it back.
 3. `timeScale` ramps back to 1, the ragdoll falls, and a blood pool spreads.
 4. Score, then the win moment, then rematch.
@@ -73,14 +73,14 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 | Who decides a hit | The player being shot, since their pose is exact on their screen. A cheat could ignore hits, which is fine between friends. |
 | Bullet direction | The gun's real angle along the forearm, lined up once so that fully up it points at the other cowboy's standing head. Shots are taken before the kick moves the arm. |
 | Random bullet | The shooter rolls the spread and sends the final angle, so both screens show the same bullet. |
-| Both hit at once | A bullet already flying still counts. Both hits within the banner delay make a draw, and nobody scores. |
+| Both hit at once | The first one hit is dead. Hits are timed on the shared clock, and within `DRAW_WINDOW` (150 ms) it's a draw and nobody scores. After that the survivor can't be hit. |
 | On the wire | Pose (stand, shoot) at 30 Hz on an unreliable room channel, `{ ordered: false, maxRetransmits: 0 }`. Shots, hits, round state and pings go reliably through `room.send`. |
 | Seeing the raise | The opponent's pose is blended and moved forward by half the round trip, using the known rise speed. This keeps the raise current, where a plain interpolation buffer would show it late. |
 | Same start | Five pings at room start give the clock offset, using the lowest round trip. The host sends a start time in shared time. `@papit/webrtc` has no ping, so we write one. |
-| Screens | World fits by height and width, and sky and ground run on past it on wider phones. From the pole onward, portrait shows "turn your phone". The name sign and QR dialog work upright, because a friend usually opens the link that way and a landscape keyboard covers half the screen. |
+| Screens | The map always fills the screen's width, so both players see the same 1200 wide world with the houses at the edges. A wide phone loses sky at the top, it's anchored to the ground. The owner's idea was a shared width from both devices, this does the same with no change to the aim or the network. The HUD follows the top of the view. From the pole onward, portrait shows "turn your phone". The name sign and QR dialog work upright, because a friend usually opens the link that way and a landscape keyboard covers half the screen. |
 | Names | Sent through the room's `profile`, 16 characters at most. |
 | Signs | The old `sign.svg` wooden post and its paper, reused for the landing sign. The pole is built from pieces cut out of it: `plank-1`, `plank-2`, `post`, `rock`, `grass`. The old WANTED poster goes on it with the player's name. |
-| Art style | Flat and crisp: hard edges, cel shading, no gradients, haze or transparency, so shapes stay apart. `scene/palette.ts` holds the land's colours: `noon` is the default, `sunset` and `gold` are the other two, `?palette=` tries one. The owner picks after review. |
+| Art style | Flat and crisp: hard edges, cel shading, no gradients, haze or transparency, so shapes stay apart. `scene/palette.ts` holds the land's colours. The sky follows the player's own clock: `gold` from 6, `noon` from 10, `sunset` from 17, `night` from 20. `?palette=` picks one by hand. At night a tint is multiplied into each SVG as it loads, windows and lanterns stay lit. |
 | Background | Drawn by us in layers, desert and mesas. The old `background1.jpg` isn't the owner's art: it's a 626 × 626 Freepik image with the watermark in it, so it doesn't ship. |
 | Phone details | `touch-action: none`, no text selection or callout on long press, safe area insets, wake lock during a duel. Audio starts on the first tap. iPhones have no fullscreen and no orientation lock. |
 | Ragdoll | Local Verlet module behind a small interface, drawn through `ik.setPositions`, so papit's can replace it later. |
@@ -208,9 +208,11 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 **Online, built in tasks 15 to 25**
 - `src/net/lobby.ts` is the shared chord network (oldest wins, race guard, retry, 1 s between server calls). `src/net/match.ts` is the room: reliable messages by name, the `pose` channel, and the clock from five pings. `src/online.ts` is the flow: host and guest, the pole, ready, countdown, rounds, leaving, a hidden tab. `src/ui/overlay.ts` holds the bars, countdown, note, buttons and the two dialogs.
 - Each player sees themselves on the left, so a position or angle sent over the wire is in the sender's view and the receiver mirrors it (`x` to `1200 - x`, angle to `PI - angle`).
-- Messages: `ready`, `start {go}`, `round {go, score, over, restart}`, `shot`, `hit`, `away`, `back`, `bye`, `ping`, `pong`. The host decides when a round starts, and the guest takes its score from the host. The target decides hits, the remote cowboy has no hit lines.
+- Messages: `ready`, `start {go}`, `round {go, score, over, restart}`, `shot`, `hit {at}`, `away`, `back`, `bye`, `ping`, `pong`. The host decides when a round starts, and the guest takes its score from the host. The target decides hits, the remote cowboy has no hit lines.
+- A hit carries `at`, on the shared clock.
 - A hidden tab sends `away`. Both stop, and the host restarts the round through the countdown when nobody is away, with no score. A closing tab sends `bye`, because a dead connection takes a long time to notice.
-- Dead links: a reject means "full", a timeout means "ended" (the text also says to try the same wifi), anything else is "couldn't connect". A host whose lobby id changed while nobody joined opens a new room and a new link. Not tested: whether a socket reconnect changes the peer id, the brief and the webrtc README disagree.
+- Dead links: a link is tried for 18 s, because a fresh guest can be in a lobby of their own until the merge, and a guest back from a refresh can find their old self in the room. Then a reject means "full", and anything else makes this player the host of a new game with the invite open (`rehost`). The same happens to a guest whose host left. The room accepts anyone when `match.peer` is empty, not by member count, because a member with no `network.leave` is counted for 17 s. A host whose lobby id changed while nobody joined opens a new room and a new link.
+- `CALL_TIMEOUT` is 7 s, not the default 15: a lobby whose last player just left stays listed, and waiting that out was an 18 to 26 s wait for a link. It's now 2 to 9 s. Checked on the real signal server. Not tested: whether a socket reconnect changes the peer id, the brief and the webrtc README disagree.
 - Checked once by hand with two Chromium pages (host, guest, ready, countdown, a kill on both, next round, tab away, third player, friend leaving, dead link). No test files, see the Tests line above.
 - `qr-code` and `share-link` are copies of papchat's under `packages/`, tags `cw-`. The QR didn't redraw when its value was set, so `overlay.ts` calls `update()` after setting it, and `qr-code` finds its own `code` element if `@query` hasn't yet.
 
