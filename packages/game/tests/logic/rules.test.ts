@@ -38,7 +38,7 @@ test("a release above the draw line fires at once, and the earlier the wilder", 
         return shot?.type === "shot" ? shot.wild : null;
     };
 
-    expect(wild(.4)).toBeGreaterThan(wild(.8)!);
+    expect(wild(.6)).toBeGreaterThan(wild(.8)!);
     expect(wild(.8)).toBeGreaterThan(0);
 });
 

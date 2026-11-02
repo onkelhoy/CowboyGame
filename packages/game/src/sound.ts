@@ -6,6 +6,12 @@ const FILES = {
     fly: ["fly1", "fly2", "fly3", "fly4", "fly5"],
 };
 
+/** How much of the music is left during slow motion. */
+const MUSIC_DIP = .25;
+const HIT_RATE = .35;
+/** Seconds from one heartbeat to the next. */
+const HEARTBEAT = .78;
+
 const LOUDNESS: Partial<Record<SoundName, number>> = { fly: .35, reload: .2 };
 
 export type SoundName = keyof typeof FILES;
@@ -20,6 +26,7 @@ export class Sound {
     private music: GainNode | null = null;
     private buffers = new Map<SoundName, AudioBuffer[]>();
     private muted = false;
+    private dipped = false;
 
     /** A browser only starts audio from a tap, so call this from one. */
     unlock() {
@@ -82,10 +89,69 @@ export class Sound {
         source.start();
     }
 
+    /** The old hit sound, stretched for slow motion. */
+    hitSlow() {
+        this.play("hit", HIT_RATE);
+    }
+
+    /** A falling whoosh and a heartbeat. Made here, there's no file for it. */
+    slowMotion(seconds: number) {
+        const { context, sounds } = this;
+        this.dip(true);
+        if (!context || !sounds) return;
+
+        const now = context.currentTime;
+
+        const noise = context.createBufferSource();
+        noise.buffer = whiteNoise(context, seconds);
+        const filter = context.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(1800, now);
+        filter.frequency.exponentialRampToValueAtTime(90, now + seconds);
+        const whoosh = context.createGain();
+        whoosh.gain.setValueAtTime(.0001, now);
+        whoosh.gain.exponentialRampToValueAtTime(.5, now + .12);
+        whoosh.gain.exponentialRampToValueAtTime(.0001, now + seconds);
+        noise.connect(filter).connect(whoosh).connect(sounds);
+        noise.start(now);
+
+        for (let beat = .1; beat < seconds; beat += HEARTBEAT)
+        {
+            this.thump(now + beat, 62, .8);
+            this.thump(now + beat + .26, 48, .55);
+        }
+    }
+
+    /** Pulls the music down for the slow motion, and lets it back up. */
+    dip(value: boolean) {
+        this.dipped = value;
+        const { context, music } = this;
+        if (!context || !music) return;
+
+        const target = this.volumes.music * (value ? MUSIC_DIP : 1);
+        music.gain.cancelScheduledValues(context.currentTime);
+        music.gain.setTargetAtTime(target, context.currentTime, .12);
+    }
+
+    private thump(when: number, frequency: number, loudness: number) {
+        const { context, sounds } = this;
+        if (!context || !sounds) return;
+
+        const beat = context.createOscillator();
+        beat.frequency.setValueAtTime(frequency * 1.6, when);
+        beat.frequency.exponentialRampToValueAtTime(frequency, when + .06);
+        const gain = context.createGain();
+        gain.gain.setValueAtTime(loudness, when);
+        gain.gain.exponentialRampToValueAtTime(.0001, when + .24);
+        beat.connect(gain).connect(sounds);
+        beat.start(when);
+        beat.stop(when + .25);
+    }
+
     private apply() {
         if (this.master) this.master.gain.value = this.muted ? 0 : this.volumes.everything;
         if (this.sounds) this.sounds.gain.value = this.volumes.sounds;
-        if (this.music) this.music.gain.value = this.volumes.music;
+        if (this.music) this.music.gain.value = this.volumes.music * (this.dipped ? MUSIC_DIP : 1);
     }
 
     private async load() {
@@ -108,4 +174,11 @@ export class Sound {
             return null;
         }
     }
+}
+
+function whiteNoise(context: AudioContext, seconds: number) {
+    const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * seconds), context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    return buffer;
 }

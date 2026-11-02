@@ -4,10 +4,10 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 11, the kill. The batch of tasks 1 to 10 is done, so "do next task" applies again.
+- **Next:** task 12, the feel pass, which needs the owner playing. Task 11 is done.
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
-- **Try it:** `npm start`, then <http://localhost:3000/views/game/?bot>. After a kill, practice starts over by itself after 3 s, a stopgap in `game.ts` until task 11.
+- **Try it:** `npm start`, then <http://localhost:3000/views/game/?bot>. After a kill, practice starts over by itself, online rounds come with task 22.
 
 ## The game now
 
@@ -15,7 +15,7 @@ The owner's notes change the brief's controls. This is the version the plan buil
 
 - Landscape only, and you always see the full map. Each player sees themselves on the left.
 - **Press and hold:** the cowboy rises and raises the gun. The rise is slow enough for the other player to read.
-- **Let go early:** below the draw line (35% up) he just ducks, no shot and no bullet spent. That's a feint. Above it he fires at once, along the way the gun points right then, so a low shot goes up into the sky. A slight randomness on top shrinks to nothing at the top.
+- **Let go early:** below the draw line (50% up) he just ducks, no shot and no bullet spent. That's a feint. Above it he fires at once, along the way the gun points right then, so a low shot goes up into the sky. A slight randomness on top shrinks to nothing at the top.
 - **Hold to the top:** he fires by himself, dead on.
 - **After any shot:** a short recoil he can't duck out of. He then stays up for as long as you hold, and only a release ducks him. Once he lets go he goes all the way down, and he can't rise or shoot again until he has been fully down, so staying up gets you nothing but exposed.
 - **Duck:** fully down, bullets come back one at a time, up to 6. No ammo: an empty click, and you're standing there exposed.
@@ -29,7 +29,7 @@ All in one `tuning.ts`, in seconds and world units, tuned by playing. The world 
 | --- | --- | --- |
 | Rise, bottom to top | 0.17 s | 0.18 s, the owner found 0.9 s, 0.4 s and 0.25 s too slow |
 | Duck, top to bottom | 0.33 s | 0.18 s |
-| Draw line | none | 35% up |
+| Draw line | none | 50% up, the owner found 35% too low |
 | Spread | none | ±3° off the gun at the draw line, falling to 0 at the top |
 | Gun level | none | 75% up. Above that the body's lean still tips the gun, so an early release only hits a standing head from about 91% up, roughly 15 ms before the top |
 | Recoil lock | none | 0.25 s, a release during it ducks him when it ends |

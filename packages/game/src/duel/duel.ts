@@ -44,6 +44,12 @@ export class Duel extends GameObject {
         for (const bullet of this.bullets) this.test(bullet);
     }
 
+    /** Takes every bullet off the map. */
+    clear() {
+        for (const bullet of this.bullets) this.remove(bullet);
+        this.bullets.clear();
+    }
+
     private run(cowboy: Cowboy, dt: number) {
         for (const event of cowboy.advance(dt))
         {

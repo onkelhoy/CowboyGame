@@ -2,8 +2,11 @@ import { Camera, GameEngine } from "@papit/game-engine";
 
 import { Cowboy } from "./cowboy/cowboy";
 import { loadParts, OUTFITS } from "./cowboy/outfit";
+import { Banner } from "./duel/banner";
+import { Blood, BloodPools } from "./duel/blood";
 import { createBot } from "./duel/bot";
 import { Duel } from "./duel/duel";
+import { Kill } from "./duel/kill";
 import { Hud } from "./hud";
 import { Hold } from "./input";
 import { Sound } from "./sound";
@@ -33,25 +36,44 @@ export async function startGame() {
     const sound = new Sound();
     sound.unlockOnFirstTap();
 
+    const blood = new Blood();
+    const pools = new BloodPools();
+    const banner = new Banner();
+    const kill: Kill = new Kill({
+        engine, sound, blood, pools, banner,
+        cowboys: [left, right],
+        text: winner => winner === left ? "You win!" : winner ? "They win!" : "Draw!",
+        done() {
+            if (!practice) return;
+
+            kill.reset();
+            duel.clear();
+            left.reset();
+            right.reset();
+        },
+    });
+
     const duel = new Duel(left, right, {
         action(_cowboy, event) {
             sound.play(event.type === "shot" ? "shot" : event.type === "click" ? "empty" : "reload");
         },
         flyby: () => sound.play("fly"),
-        hit(_hit, _bullet, target) {
-            sound.play("hit");
-
-            // the round sequence comes with the kill, until then practice just starts over
-            if (target && practice) setTimeout(() => [left, right].forEach(cowboy => cowboy.reset()), 3000);
+        hit(hit, bullet, target) {
+            if (target) kill.strike(target, hit, bullet);
+            else sound.play("hit");
         },
     });
 
     engine.add(map.back);
+    engine.add(pools);
     engine.add(map.actors);
     engine.add(duel);
     engine.add(map.front);
+    engine.add(blood);
     engine.add(new Hud(left));
+    engine.add(banner);
+    engine.add(kill);
 
     engine.start();
-    return { engine, map, left, right, hold, duel, sound };
+    return { engine, map, left, right, hold, duel, sound, kill, banner };
 }

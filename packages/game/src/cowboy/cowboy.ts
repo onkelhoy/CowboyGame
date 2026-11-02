@@ -17,6 +17,10 @@ export class Cowboy extends GameObject {
     /** Who's holding. */
     control: () => boolean = () => false;
     alive = true;
+    /** The round is decided: nothing he does counts, and no bullet can hit him. */
+    private locked = false;
+    /** Bullets pass him, the win sign is up. */
+    safe = false;
     /** Radians from the forearm to the barrel. */
     private tilt = 0;
 
@@ -42,12 +46,20 @@ export class Cowboy extends GameObject {
             return [];
         }
 
-        const events = step(this.state, this.control(), dt);
+        // a locked cowboy who fired stands tall, the rest go down
+        const held = this.locked ? this.state.spent && !this.state.falling : this.control();
+        const events = step(this.state, held, dt);
 
         // the kick shows from the next frame, a shot leaves the way the gun pointed before it
         const fired = events.some(event => event.type === "shot");
         this.body.pose(this.state.stand, fired ? 0 : this.state.kick);
         return events;
+    }
+
+    /** Takes the control away. Letting go mid draw shouldn't fire. */
+    lock() {
+        this.locked = true;
+        this.state.drawing = false;
     }
 
     /** Goes down from a bullet, the velocity is in world units per second. */
@@ -66,8 +78,15 @@ export class Cowboy extends GameObject {
     /** Back on his feet with a full gun. */
     reset() {
         this.alive = true;
+        this.locked = false;
+        this.safe = false;
         this.state = createCowboy();
         this.body = new Body(this.parts);
+    }
+
+    /** Where his torso is in the world, for what follows the body around. */
+    get chest() {
+        return this.toWorld(this.body.chest);
     }
 
     get muzzle() {
@@ -90,7 +109,7 @@ export class Cowboy extends GameObject {
     }
 
     get hitLines(): Target[] {
-        if (!this.alive) return [];
+        if (!this.alive || this.safe) return [];
 
         const { head, body } = this.body.hitLines;
         const forward = { x: HEAD_FORWARD, y: 0 };

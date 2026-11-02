@@ -37,12 +37,52 @@ test("a hit cowboy falls down and stays on the ground, without bad numbers", asy
     await page.keyboard.down(" ");
     await page.waitForFunction(() => !(window as any).cowboy.right.alive);
     await page.keyboard.up(" ");
-    await page.waitForTimeout(2500);
+
+    await page.waitForFunction(() => (window as any).cowboy.engine.timeScale < .2);
+    await page.waitForFunction(() => (window as any).cowboy.banner.showing);
+    await page.waitForFunction(() => (window as any).cowboy.engine.timeScale === 1, undefined, { timeout: 3000 });
+    await page.waitForTimeout(1800);
 
     const chest = await page.evaluate(() => (window as any).cowboy.right.body.chest);
     expect(Number.isFinite(chest.x)).toBe(true);
     expect(chest.y).toBeGreaterThan(-30);
     expect(errors).toEqual([]);
+});
+
+test("practice starts over after a kill, at full speed and with a clean map", async ({ page }) => {
+    await page.goto("views/game/?bot");
+    await page.waitForFunction(() => (window as any).cowboy);
+
+    await page.evaluate(() => {
+        const { right, left } = (window as any).cowboy;
+        Object.assign(right.state, { stand: 1, recoil: 60 });
+        right.control = () => false;
+        left.control = () => true;
+    });
+    await page.waitForFunction(() => !(window as any).cowboy.right.alive, undefined, { timeout: 3000 });
+    await page.waitForFunction(() => (window as any).cowboy.right.alive, undefined, { timeout: 8000 });
+
+    const after = await page.evaluate(() => {
+        const { engine, banner, left } = (window as any).cowboy;
+        return { speed: engine.timeScale, banner: banner.showing, ammo: left.state.ammo };
+    });
+    expect(after.speed).toBe(1);
+    expect(after.banner).toBe(false);
+});
+
+test("two hits in the slow motion make a draw", async ({ page }) => {
+    await page.goto("views/game/");
+    await page.waitForFunction(() => (window as any).cowboy);
+
+    await page.evaluate(() => {
+        const { left, right } = (window as any).cowboy;
+        for (const cowboy of [left, right]) Object.assign(cowboy.state, { stand: .99 });
+        left.control = right.control = () => true;
+    });
+
+    await page.waitForFunction(() => (window as any).cowboy.banner.showing, undefined, { timeout: 4000 });
+    const text = await page.evaluate(() => (window as any).cowboy.banner.text);
+    expect(text).toBe("Draw!");
 });
 
 test("a shot from low down goes up the way the gun points", async ({ page }) => {
@@ -55,7 +95,7 @@ test("a shot from low down goes up the way the gun points", async ({ page }) => 
         return left.aim as number;
     }, stand);
 
-    const low = await aim(.36), high = await aim(1);
+    const low = await aim(.51), high = await aim(1);
     expect(low).toBeLessThan(high - .3);
     expect(Math.abs(high)).toBeLessThan(.3);
 });

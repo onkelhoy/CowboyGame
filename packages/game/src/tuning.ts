@@ -16,7 +16,7 @@ export const GUN_LEVEL = .75;
 export const DUCK_TIME = .18;
 
 /** Below this part of the rise a release is only a feint. */
-export const DRAW_LINE = .35;
+export const DRAW_LINE = .5;
 /** Radians either way off the gun at the draw line, falling to 0 at the top. */
 export const SPREAD = 3 * Math.PI / 180;
 /** Seconds after a shot before a release can duck him. */
@@ -39,3 +39,14 @@ export const BOUNCE = .9;
 export const FRICTION = .99;
 /** How much of the bullet's speed goes into the body. */
 export const BULLET_PUSH = .5;
+
+/** How slow the game runs right after a hit. */
+export const SLOW_SCALE = .1;
+/** Real seconds of slow motion, a second hit inside them makes a draw. */
+export const SLOW_TIME = 1.8;
+/** Real seconds back up to full speed. */
+export const RAMP_TIME = .6;
+/** Real seconds at full speed before the round is over. */
+export const LINGER_TIME = 2.2;
+/** Turns blood off, and leaves the rest of the kill as it is. */
+export const BLOOD = true;
