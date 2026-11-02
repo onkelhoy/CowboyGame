@@ -19,3 +19,24 @@ canvas {
     -webkit-user-select: none;
     -webkit-touch-callout: none;
 }
+
+#turn {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: #2b1d14;
+    color: #f7cf8e;
+    font: bold 20px Georgia, serif;
+    text-align: center;
+}
+
+/* the name sign and the QR dialog work upright, they set data-upright on the body */
+@media (orientation: portrait) {
+    body:not([data-upright]) #turn {
+        display: flex;
+    }
+}
