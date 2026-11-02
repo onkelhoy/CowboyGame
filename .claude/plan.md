@@ -4,7 +4,7 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 1. Tasks 1 to 10 are one batch the owner asked for, so run them in a row, committing after each, without stopping for "do next task".
+- **Next:** task 2. Tasks 1 to 10 are one batch the owner asked for, so run them in a row, committing after each, without stopping for "do next task".
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
 
@@ -96,7 +96,7 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 
 Files the game looks for: `asset/music/menu.mp3`, `asset/music/duel.mp3`, `asset/logo.svg`, `asset/manifest.logo.svg`.
 
-The server and static build collect `asset/` from the served package and its dependencies, and papit's docs don't say the root folder counts. Task 1 checks this. If it doesn't count, a small copy step puts the files in `packages/game/asset/`, and the owner's side stays the same.
+The server and static build don't collect the root `asset/`. `packages/game/bin/sync-assets.mjs` copies it to the gitignored `packages/game/asset/owner/` before `start` and `build`, so `/music/menu.mp3` resolves and the owner's side stays the same.
 
 ## Tasks
 
@@ -168,6 +168,7 @@ The server and static build collect `asset/` from the served package and its dep
 Found while reading the code on 2026-11-02, and checked against the release in task 0.
 
 **Game package**
+- `views/*/main.ts` is compiled file by file in dev, so a relative import of `src/` fails on the second file. Pages import `@cowboy/game`, the built `lib/bundle.js`. `npm start` from the root builds first and rebuilds on change.
 - Public page in `views/game/`, which `@papit/static` picks by default when `views/github/` is missing. Delete the template's `experiment` view.
 - The game template's `views/` and `tests/` use `Engine` and `@papit/game-input-events`, which don't exist any more. `@papit/create` 0.0.20 still has this. Use `GameEngine` and replace those files.
 - The template's `tests/playwright.config.ts` runs `npm run server`, which the root doesn't have. Point it at `npx @papit/server --port=3500`. Keep Chromium, and run pure logic tests in a project of their own with no browser. Skip the snapshot test, the owner doesn't want those.

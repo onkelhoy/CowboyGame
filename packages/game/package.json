@@ -1,0 +1,77 @@
+{
+  "name": "@cowboy/game",
+  "description": "Two player online cowboy duel, the game itself.",
+  "keywords": [
+    "papit",
+    "game",
+    "typescript"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "prestart": "node bin/sync-assets.mjs && npm run build",
+    "prebuild": "node bin/sync-assets.mjs",
+    "build": "npx @papit/build -- --error --ancestors",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "test": "npx playwright test -c tests/playwright.config.ts",
+    "preversion": "papit-version",
+    "postversion": "papit-version",
+    "test:chrome": "npm test -- --project=chromium",
+    "test:logic": "npm test -- --project=logic"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": true,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/onkelhoy/cowboy/tree/main/packages/game",
+  "bugs": {
+    "url": "https://github.com/onkelhoy/cowboy/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onkelhoy/cowboy.git",
+    "directory": "packages/game"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/armature": "*",
+    "@papit/game-engine": "*",
+    "@papit/line-intersection": "*",
+    "@papit/theme": "*",
+    "@papit/vector": "*"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "playwright": "1.64.1",
+    "typescript": "5.9.3"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": false,
+    "type": "game",
+    "main": "game"
+  }
+}
