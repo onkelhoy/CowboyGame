@@ -1,6 +1,12 @@
 # Cowboy: plan
 
-Status: **waiting for the owner to confirm.** Nothing is built until then.
+Status: **confirmed by the owner, 2026-11-02.** Nothing is built yet.
+
+## Where we are
+
+- **Next:** task 0, resync after the owner's papit release. Then tasks 1 to 10, which the owner asked for as one batch, so run them in a row, committing after each, without stopping for "do next task".
+- **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
+- **Why it stopped:** the owner paused task 1 to publish papit. No game code exists.
 
 ## The game now
 
@@ -32,9 +38,11 @@ All in one `tuning.ts`, in seconds and world units, tuned by playing. The world 
 ### The kill
 
 1. Hit: `engine.timeScale` drops to 0.1 on both screens. The cowboy starts to reel and blood hangs in the air. Music dips and the slow motion sound plays.
-2. About 1.8 s of real time: "you win" or "you died" on screen.
+2. About 1.8 s of real time: the win screen appears above the loser. It's anchored to the dead body and follows it as the bullet pushes it back.
 3. `timeScale` ramps back to 1, the ragdoll falls, and a blood pool spreads.
-4. Score, then rematch.
+4. Score, then the win moment, then rematch.
+
+**Later, not in the first version:** a silly win celebration, such as a mariachi band coming on and playing, with a change of music. Keep a hook for it between the kill and the rematch.
 
 `timeScale` also slows `fixedUpdate`, so this sequence and the network clock run on `performance.now()`, not engine time.
 
@@ -69,6 +77,8 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 | Background | Drawn by us in layers, desert and mesas. The old `background1.jpg` isn't the owner's art: it's a 626 × 626 Freepik image with the watermark in it, so it doesn't ship. |
 | Phone details | `touch-action: none`, no text selection or callout on long press, safe area insets, wake lock during a duel. Audio starts on the first tap. iPhones have no fullscreen and no orientation lock. |
 | Ragdoll | Local Verlet module behind a small interface, drawn through `ik.setPositions`, so papit's can replace it later. |
+| Colours | Each cowboy gets a shirt and hat colour, tinted onto the art, so the two read apart at a glance. Picking a colour stays a later idea. |
+| Win screen | Drawn in the world over the ragdoll's torso, so it tracks the body. Clamped to stay on screen. |
 | Blood | Small stylised particles and a pool, on by default, one constant to turn it off. |
 | Barrels | Stop low bullets, so ducking reads as taking cover. |
 | Slow motion sound | Made in Web Audio, a whoosh and a heartbeat, plus the old hit sound at a low playback rate. No file needed. Suno is for the songs. |
@@ -79,7 +89,7 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 
 ## Blockers, checked 2026-11-02
 
-1. **Papit release, needed before task 1.** npm is behind the repo: `game-engine` 0.1.0 against 0.2.0, `vector` and `matrix` 0.0.1 against 0.0.2. `armature`, `quaternion` and `line-intersection` aren't on npm at all.
+1. **Papit release.** The owner is publishing it now, and task 0 picks it up. On 2026-11-02 npm had `game-engine` 0.1.0 and `vector` and `matrix` 0.0.1, with `armature`, `quaternion` and `line-intersection` missing. The repo had 0.2.0, 0.0.2, 0.0.2, and 0.0.1 for those three.
 2. `webrtc` 0.0.7, `signal-server` 0.0.6 and the UI packages match the repo. Nothing to do.
 3. `github.com/onkelhoy/cowboy` wasn't reachable from here. The owner needs to create it before task 30.
 4. Suno songs, logo and manifest logo: the owner adds them to the root `asset/` folder later. The plan runs without them until task 26, and a missing file means silence, not a crash.
@@ -90,8 +100,17 @@ The server and static build collect `asset/` from the served package and its dep
 
 ## Tasks
 
+### Resync
+0. **Resync with the papit release.** Removes the stopgap below, then checks that the plan still holds.
+   - Check with `npm view` that `game-engine`, `vector`, `matrix`, `armature`, `quaternion` and `line-intersection` are out. If any is missing, tell the owner and stop.
+   - Delete `vendor/`. Run `git checkout package.json` to drop the `overrides`.
+   - Delete `packages/game/`, which is an uncommitted scaffold with `file:` dependencies and a hand-edited `package.json`. Task 1 makes it again.
+   - Delete `node_modules` and `package-lock.json`, then `npm install`, so every `@papit/*` comes in at its newest version.
+   - Reread the catalog and the READMEs of `game-engine`, `armature`, `webrtc` and `create`. Compare them with the technical notes below, fix what changed, and tell the owner if a change affects the plan.
+   - Commit, including `package-lock.json`.
+
 ### Something visible
-1. **Package and blank canvas.** Install papit, create `packages/game`, serve an empty engine with `npm start`.
+1. **Package and blank canvas.** Create `packages/game` with `npm create @papit -- --package=game --name=game --description="..." --destination=packages --no --html-prefix=cowboy`, add the papit dependencies, serve an empty engine with `npm start`. Check whether the root `asset/` folder gets served.
 2. **The map.** Fixed world, fit to screen, drawn background, ground, houses, barrels, cactus, the pole with two arrow signs, turn-your-phone overlay.
 3. **Two cowboys.** Port the armature view, both drawn and mirrored, posed from stand and shoot values.
 4. **Hold to rise.** Mouse, touch and space share one input. Long press is safe on a phone.
@@ -140,11 +159,46 @@ The server and static build collect `asset/` from the served package and its dep
 | Best of five, first to 3, with a score | Yes |
 | Hat flies off on a head shot | Yes, cheap and funny |
 | Swedish next to English | Yes, cheap with the translator |
-| Outfit colour per player | Later |
+| Picking your own outfit colour | Later |
+| Mariachi band win celebration with its own music | Later, the owner wants this |
 | "High noon" bell that forces a move after 20 s of nobody shooting | Only if playing shows that both players sit ducked |
+
+## Technical notes
+
+Found while reading the code on 2026-11-02. Check them against the new release in task 0.
+
+**Game package**
+- Public page in `views/game/`, which `@papit/static` picks by default when `views/github/` is missing. Delete the template's `experiment` view.
+- The game template's `views/` and `tests/` use `Engine` and `@papit/game-input-events`, which don't exist any more, unless the release fixed them. Use `GameEngine` and replace those files.
+- The template's `tests/playwright.config.ts` runs `npm run server`, which the root doesn't have. Point it at `npx @papit/server --port=3500`. Keep Chromium, and run pure logic tests in a project of their own with no browser. Skip the snapshot test, the owner doesn't want those.
+- Move game dependencies from the template's `devDependencies` to `dependencies`, and set `private: true` and `papit.publish: false`.
+
+**Assets**
+- The server finds assets by the end of their path, so `/images/x.svg` finds `asset/images/x.svg`. The static build rewrites only `fetch`, not `<img src>` or CSS `url()`. So load images and audio with `fetch`, then a blob.
+- Old art and sound: <https://github.com/onkelhoy/CowboyGame>, under `dist/content/`. The cowboy parts with dashed names are in papit at `packages/algorithms/math/armature/views/cowboy/public/`.
+
+**Engine**
+- `engine.timeScale` scales `deltaTime` and the fixed step alike. `dt` is capped at 0.1 s.
+- `Camera` position is the centre of the view. Without a camera, units are device pixels. Fit the world with `camera.position = (600, 300)` and `camera.zoom = fit`. The pole shot and the zoom out are the same camera.
+- `new Camera()` on a 2D layer multiplies the view into each object's matrix, so `ctx` is already placed in `render`.
+- `camera.shake` already skips for reduced motion.
+- `InputEvents.on("mouse-down")` falls through its `switch` and also registers on the mouse, touch and keyboard targets. A plain `new InputEvents` requests pointer lock, `engine.input` doesn't.
+- Before task 4, read `input/touches/handler.ts` and `input/keyboard/handler.ts`. Check that `touchcancel` and a release outside the canvas can't leave the hold stuck, and find the key name for space.
+
+**Cowboy and armature**
+- Start from papit's `packages/algorithms/math/armature/views/cowboy/main.js`. Its `limb`, `joint` and `foot` draw order is worth keeping. `Rig` comes from `views/shared/rig.js`, it isn't exported by the package.
+- Rig units have y down and the cowboy facing +x. Mirror through `scale.x`.
+- `ik.setPositions(positions)` takes x, y, z per head plus the last tail.
+
+**Network**
+- Room channels: `room({ media: { channels: { pose: { ordered: false, maxRetransmits: 0 } } } })`, then `room.media.channel("pose")`. Messages that arrive before the first `channel()` call are dropped, so call it early.
+- The signal server strikes messages under 200 ms apart. Papchat spaces its own calls 1 s apart.
+- `merge` needs `acceptMerge` on the client, or the race guard can't merge two lobbies.
+- Lobby logic to copy: `packages/foundations/core/src/lobby.ts` in papchat, lines 410 to 550 and 756 to 815.
 
 ## Papit gaps to report
 
 - No QR or share link component.
 - `@papit/webrtc` has no round trip or clock helper.
+- The `game` package template in `@papit/create` is out of date, see the technical notes.
 - No slider or range component. Volumes use a native range input with theme tokens for now.
