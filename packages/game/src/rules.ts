@@ -13,8 +13,10 @@ export type CowboyState = {
     reload: number;
     /** He's rising, so letting go now fires or feints. */
     drawing: boolean;
-    /** Set by a shot: he has to let go after the recoil and press again to rise. */
+    /** Set by a shot: no rising until he has been fully down. */
     spent: boolean;
+    /** He let go after a shot, and goes all the way down whatever is pressed now. */
+    falling: boolean;
 };
 
 export type CowboyEvent =
@@ -25,7 +27,7 @@ export type CowboyEvent =
     | { type: "reload" };
 
 export function createCowboy(): CowboyState {
-    return { stand: 0, kick: 0, ammo: AMMO, recoil: 0, reload: 0, drawing: false, spent: false };
+    return { stand: 0, kick: 0, ammo: AMMO, recoil: 0, reload: 0, drawing: false, spent: false, falling: false };
 }
 
 /** One step of a cowboy. `held` is the one control. Changes `state`, returns what happened. */
@@ -40,10 +42,16 @@ export function step(state: CowboyState, held: boolean, dt: number): CowboyEvent
         return events;
     }
 
-    if (!held) state.spent = false;
+    if (state.spent)
+    {
+        // he stays up for as long as he holds, only a release ducks him
+        if (!held) state.falling = true;
+        if (!state.falling) return events;
 
-    // he stays up for as long as he holds, only a release ducks him
-    if (held && state.spent) return events;
+        state.stand = Math.max(0, state.stand - dt / DUCK_TIME);
+        if (state.stand === 0) state.spent = state.falling = false;
+        return events;
+    }
 
     if (held)
     {
@@ -101,11 +109,6 @@ function reload(state: CowboyState, dt: number, events: CowboyEvent[]) {
 /** How wild a shot is that leaves at `stand`, 0 for dead on and 1 at the draw line. */
 export function wildness(stand: number) {
     return 1 - (stand - DRAW_LINE) / (1 - DRAW_LINE);
-}
-
-/** Radians either way a shot can go when it leaves at `stand`. */
-export function spreadFor(stand: number) {
-    return SPREAD * Math.min(1, wildness(stand));
 }
 
 /** Turns a shot's `wild` and a roll from -1 to 1 into radians off the aim. */

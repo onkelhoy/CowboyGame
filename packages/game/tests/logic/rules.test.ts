@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { createCowboy, spread, spreadFor, step, type CowboyEvent, type CowboyState } from "../../src/rules";
+import { createCowboy, spread, step, type CowboyEvent, type CowboyState } from "../../src/rules";
 import { AMMO, DRAW_LINE, DUCK_TIME, RECOIL, RELOAD, RISE_TIME, SPREAD } from "../../src/tuning";
 
 const DT = 1 / 120;
@@ -82,6 +82,30 @@ test("after a shot he has to let go and press again to rise", () => {
     expect(cowboy.stand).toBeGreaterThan(0);
 });
 
+test("after a shot he can't shoot again until he has been fully down", () => {
+    const cowboy = createCowboy();
+    run(cowboy, true, RISE_TIME + RECOIL + .1);
+    run(cowboy, false, DUCK_TIME / 2);
+    expect(cowboy.stand).toBeGreaterThan(0);
+
+    // pressing halfway down changes nothing
+    expect(shots(run(cowboy, true, DUCK_TIME / 2 + .02))).toEqual([]);
+    expect(cowboy.stand).toBeLessThan(.2);
+
+    // a press that's still held at the bottom rises straight away
+    expect(shots(run(cowboy, true, RISE_TIME + .05))).toEqual([{ type: "shot", wild: 0 }]);
+});
+
+test("a feint can rise again on the way down", () => {
+    const cowboy = createCowboy();
+    run(cowboy, true, RISE_TIME * DRAW_LINE * .8);
+    run(cowboy, false, DT * 2);
+    const low = cowboy.stand;
+
+    run(cowboy, true, DT * 2);
+    expect(cowboy.stand).toBeGreaterThan(low);
+});
+
 test("pressing again during the recoil doesn't count, or the top would fire on repeat", () => {
     const cowboy = createCowboy();
     run(cowboy, true, RISE_TIME + .02);
@@ -128,10 +152,4 @@ test("spread falls to nothing at the top", () => {
     expect(spread(0, 1)).toBe(0);
     expect(spread(1, 1)).toBe(SPREAD);
     expect(spread(1, -1)).toBe(-SPREAD);
-});
-
-test("the shown spread matches what a release at that height would do", () => {
-    expect(spreadFor(DRAW_LINE)).toBeCloseTo(SPREAD);
-    expect(spreadFor(1)).toBeCloseTo(0);
-    expect(spreadFor(0)).toBe(SPREAD);
 });

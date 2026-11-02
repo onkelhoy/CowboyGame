@@ -9,11 +9,11 @@ export const COWBOY_X = 170;
 export const COWBOY_SCALE = 1.05;
 
 /** Seconds from fully down to fully up, slow enough for the other player to read. */
-export const RISE_TIME = .4;
+export const RISE_TIME = .25;
 /** How far up the arm stops turning, above it only the body's lean still tips the gun. */
 export const GUN_LEVEL = .75;
 /** Seconds from fully up to fully down. */
-export const DUCK_TIME = .33;
+export const DUCK_TIME = .18;
 
 /** Below this part of the rise a release is only a feint. */
 export const DRAW_LINE = .35;

@@ -1,13 +1,11 @@
 import { GameObject, type Layer2D } from "@papit/game-engine";
 
 import type { Cowboy } from "./cowboy/cowboy";
-import { spreadFor } from "./rules";
-import { AMMO, DRAW_LINE, WORLD } from "./tuning";
+import { AMMO, WORLD } from "./tuning";
 
 const STEP = Math.PI * 2 / AMMO;
 /** A fraction per 1/60 s, how fast the cylinder turns to its next chamber. */
 const TURN = .22;
-const CONE = 190;
 
 const CENTER = { x: WORLD.width / 2, y: 104 };
 const RADIUS = 72;
@@ -18,7 +16,7 @@ const STEEL = "#8d949e";
 const STEEL_DARK = "#3c4149";
 const OUTLINE = "#1d1410";
 
-/** The revolver in the corner, and a read on your own aim from the gun. */
+/** The revolver at the top of the screen. */
 export class Hud extends GameObject {
     private angle = 0;
 
@@ -36,37 +34,7 @@ export class Hud extends GameObject {
         const { ctx } = layer as Layer2D;
         if (!this.cowboy.alive) return;
 
-        this.aim(ctx);
         this.cylinder(ctx);
-    }
-
-    /** A cone that closes as he rises: dim under the draw line, where letting go is only a feint. */
-    private aim(ctx: CanvasRenderingContext2D) {
-        const { stand, spent } = this.cowboy.state;
-        if (stand === 0 || spent) return;
-
-        const { x, y } = this.cowboy.muzzle;
-        const aim = this.cowboy.aim;
-        const drawn = stand >= DRAW_LINE;
-        const half = spreadFor(stand);
-
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(aim);
-
-        ctx.globalAlpha = drawn ? .85 : .3;
-        ctx.fillStyle = drawn ? "rgba(255, 196, 80, .35)" : "rgba(60, 30, 10, .3)";
-        ctx.strokeStyle = drawn ? "#ffd27a" : "#5a3a20";
-        ctx.lineWidth = 1.5;
-
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.cos(half) * CONE, Math.sin(half) * CONE);
-        ctx.lineTo(Math.cos(-half) * CONE, Math.sin(-half) * CONE);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
     }
 
     /** The cylinder seen from behind: fluted steel with a brass cartridge per bullet left. */

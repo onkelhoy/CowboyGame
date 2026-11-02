@@ -17,7 +17,7 @@ The owner's notes change the brief's controls. This is the version the plan buil
 - **Press and hold:** the cowboy rises and raises the gun. The rise is slow enough for the other player to read.
 - **Let go early:** below the draw line (35% up) he just ducks, no shot and no bullet spent. That's a feint. Above it he fires at once, along the way the gun points right then, so a low shot goes up into the sky. A slight randomness on top shrinks to nothing at the top.
 - **Hold to the top:** he fires by himself, dead on.
-- **After any shot:** a short recoil he can't duck out of. He then stays up for as long as you hold, and only a release ducks him. You must let go and press again to rise again, so staying up gets you nothing but exposed.
+- **After any shot:** a short recoil he can't duck out of. He then stays up for as long as you hold, and only a release ducks him. Once he lets go he goes all the way down, and he can't rise or shoot again until he has been fully down, so staying up gets you nothing but exposed.
 - **Duck:** fully down, bullets come back one at a time, up to 6. No ammo: an empty click, and you're standing there exposed.
 - **One hit:** slow motion, the winner on screen, back to speed, he falls and bleeds.
 
@@ -27,11 +27,11 @@ All in one `tuning.ts`, in seconds and world units, tuned by playing. The world 
 
 | Thing | Old | Start at |
 | --- | --- | --- |
-| Rise, bottom to top | 0.17 s | 0.4 s, the owner found 0.9 s far too slow |
-| Duck, top to bottom | 0.33 s | 0.33 s |
+| Rise, bottom to top | 0.17 s | 0.25 s, the owner found 0.9 s and 0.4 s too slow |
+| Duck, top to bottom | 0.33 s | 0.18 s |
 | Draw line | none | 35% up |
 | Spread | none | ±3° off the gun at the draw line, falling to 0 at the top |
-| Gun level | none | 75% up. Above that the body's lean still tips the gun, so an early release only hits a standing head from about 91% up, roughly 35 ms before the top |
+| Gun level | none | 75% up. Above that the body's lean still tips the gun, so an early release only hits a standing head from about 91% up, roughly 20 ms before the top |
 | Recoil lock | none | 0.25 s, a release during it ducks him when it ends |
 | Reload | 0.67 s per bullet | 0.67 s per bullet, only fully down |
 | Bullet speed | 3900 per s | 3900 per s, about 0.2 s across |
@@ -124,7 +124,7 @@ The server and static build don't collect the root `asset/`. `packages/game/bin/
 7. **Practice bot.** `?bot` adds a simple opponent, so feel can be tuned before any network exists.
 8. **Ragdoll.** Verlet port, push from the bullet, drawn through `ik.setPositions`.
 9. **Sound.** Web Audio loader and first tap unlock, with gains for everything, music and sounds. Shots, hit, reload, empty click, fly-by.
-10. **Revolver and aim.** Turning ammo cylinder in the corner, and a read on your own aim.
+10. **Revolver.** Turning ammo cylinder at the top centre. The aim cone was tried and removed, the owner doesn't want it in the game.
 11. **The kill.** Slow motion, sound, banner, blood, return to speed, fall.
 12. **Feel pass.** The owner plays against the bot and we tune `tuning.ts`.
 
