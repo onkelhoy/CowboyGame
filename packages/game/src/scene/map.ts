@@ -1,7 +1,7 @@
 import { GameObject } from "@papit/game-engine";
 
 import { loadImages } from "../assets";
-import { COWBOY_X, GROUND_Y, WORLD } from "../tuning";
+import { GROUND_Y, WORLD } from "../tuning";
 import { Backdrop } from "./backdrop";
 import { Tumbleweed } from "./dust";
 import { Pole } from "./pole";
@@ -28,5 +28,5 @@ export async function createMap() {
     front.add(new Prop(props.barrel, width - BARREL_X, GROUND_Y + 4, .42, true));
     front.add(new Tumbleweed(props.dust));
 
-    return { back, actors, front, pole, cowboyX: COWBOY_X };
+    return { back, actors, front, pole };
 }

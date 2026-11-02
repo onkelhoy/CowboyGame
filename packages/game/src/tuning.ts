@@ -4,3 +4,6 @@ export const GROUND_Y = 560;
 
 /** Where the cowboys stand, left and right. */
 export const COWBOY_X = 170;
+
+/** How much bigger a cowboy is than his rig units. */
+export const COWBOY_SCALE = 1.05;
