@@ -51,7 +51,7 @@ export class Hold {
 
     private keydown = (event: KeyboardEvent) => {
         if (event.code !== "Space") return;
-        if (event.target instanceof HTMLElement && event.target.closest("input, textarea, button, dialog")) return;
+        if (event.target instanceof HTMLElement && event.target.closest("input, textarea, button, dialog, pap-button, pap-input, pap-dialog")) return;
         event.preventDefault();
         this.key = true;
     };

@@ -40,3 +40,31 @@ canvas {
         display: flex;
     }
 }
+
+#corner {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 8px);
+    right: calc(env(safe-area-inset-right) + 8px);
+    display: flex;
+    gap: 4px;
+    color: #2b1d14;
+}
+
+#corner pap-icon {
+    width: 24px;
+    height: 24px;
+}
+
+pap-dialog .row {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    margin-block: 12px;
+    color: var(--on-background, currentColor);
+}
+
+pap-dialog input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary, currentColor);
+}

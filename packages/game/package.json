@@ -54,10 +54,18 @@
   },
   "dependencies": {
     "@papit/armature": "*",
+    "@papit/button": "^0.1.10",
+    "@papit/dialog": "^0.0.17",
     "@papit/game-engine": "*",
+    "@papit/icon": "^0.1.13",
+    "@papit/input": "^0.0.10",
     "@papit/line-intersection": "*",
+    "@papit/signals": "^0.0.1",
     "@papit/theme": "*",
-    "@papit/vector": "*"
+    "@papit/translator": "^0.1.1",
+    "@papit/vector": "*",
+    "@papit/web-component": "^0.0.14",
+    "@papit/webrtc": "^0.0.7"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

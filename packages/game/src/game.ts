@@ -1,4 +1,5 @@
 import { Camera, GameEngine } from "@papit/game-engine";
+import { effect } from "@papit/signals";
 
 import { Cowboy } from "./cowboy/cowboy";
 import { loadParts, OUTFITS } from "./cowboy/outfit";
@@ -9,10 +10,12 @@ import { Duel } from "./duel/duel";
 import { Kill } from "./duel/kill";
 import { Hud } from "./hud";
 import { Hold } from "./input";
+import { saveSettings, settings } from "./settings";
 import { Sound } from "./sound";
 import { fitWorld } from "./scene/fit";
 import { createMap } from "./scene/map";
 import { COWBOY_X, WORLD } from "./tuning";
+import { mountCorner } from "./ui/corner";
 
 /** Boots the game on the page's canvas. */
 export async function startGame() {
@@ -35,6 +38,11 @@ export async function startGame() {
 
     const sound = new Sound();
     sound.unlockOnFirstTap();
+    saveSettings();
+    mountCorner(sound, hold);
+    effect(() => {
+        map.pole.names[0] = settings().name || "???";
+    });
 
     const blood = new Blood();
     const pools = new BloodPools();
