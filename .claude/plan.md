@@ -4,9 +4,9 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 12, the feel pass, and task 31, the live test with a friend. Both need the owner. Everything else is built, except task 28, which is skipped because there are no tests for now. The owner pushes: `docs/` holds the site from `npm run pages`, and `github.com/onkelhoy/cowboy` has to exist first.
-- **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. This overrides the brief and any task below that mentions tests, including task 28.
-- **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
+- **Next:** task 12, the feel pass, and task 31, the live test with a friend. Both need the owner. Everything else is built, except task 28, which is skipped because there are no tests for now. The site is on GitHub Pages at <https://onkelhoy.github.io/CowboyGame/>, built on every push to `main`.
+- **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. The files in `packages/game/tests` are from before that call and aren't kept up. This overrides the brief and any task below that mentions tests, including task 28.
+- **Branch:** `main` is the game and every push to it deploys, so work on a branch and merge. The 2018 game is on `old-version` in the same repo, `onkelhoy/CowboyGame`.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
 - **Try it alone:** `npm start`, then <http://localhost:3000/views/game/?bot>. `?bot` and `?stage` skip the landing sign and the network.
 - **Try it with two:** `npm run signal` (port 3001) and `npm start`, then open `/views/game/?signal=ws://localhost:3001` in two browsers or profiles, one for the host. The invite link keeps `?signal=`. Without it the deployed server is used, on localhost too, as papchat does.
@@ -89,14 +89,14 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 | Slow motion sound | Made in Web Audio, a whoosh and a heartbeat, plus the old hit sound at a low playback rate. No file needed. Suno is for the songs. |
 | Packages | `packages/game` (game template), plus `packages/qr-code` and `packages/share-link`, so those two can move to papit later as they are. |
 | QR and share link | Copy from papchat now, move to papit later. The papchat tests are worth bringing along. |
-| Hosting | `@papit/static` to GitHub Pages with `--base /cowboy/`, as in papchat's `npm run pages`. |
+| Hosting | `@papit/static` to GitHub Pages under `/CowboyGame/`, built by `.github/workflows/pages.yml` as in papchat. `docs/` is not committed. |
 | Licences | Ship neither ZitronSound nor Durango Western. Suno songs replace the music. The font is Rye, SIL OFL, self-hosted in `asset/fonts/` with its licence. |
 
 ## Blockers, checked 2026-11-02
 
 1. **Papit release.** Done. npm matches the repo: `game-engine` 0.2.0, `vector` and `matrix` 0.0.2, `armature`, `quaternion` and `line-intersection` 0.0.1.
 2. `webrtc` 0.0.7, `signal-server` 0.0.6 and the UI packages match the repo. Nothing to do.
-3. `github.com/onkelhoy/cowboy` wasn't reachable from here. The owner needs to create it before task 30.
+3. Repository: done. The game lives in the existing `github.com/onkelhoy/CowboyGame`.
 4. Suno songs, logo and manifest logo: the owner adds them to the root `asset/` folder later. The plan runs without them until task 26, and a missing file means silence, not a crash.
 
 Files the game looks for: `asset/music/menu.mp3`, `asset/music/duel.mp3`, `asset/logo.svg`, `asset/manifest.logo.svg`.
@@ -181,7 +181,7 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 
 **Assets**
 - The server finds assets by the end of their path, so `/images/x.svg` finds `asset/images/x.svg`. The static build rewrites only `fetch`, not `<img src>` or CSS `url()`. So load images and audio with `fetch`, then a blob.
-- Old art and sound: <https://github.com/onkelhoy/CowboyGame>, under `dist/content/`. The cowboy parts with dashed names are in papit at `packages/algorithms/math/armature/views/cowboy/public/`.
+- Old art and sound: <https://github.com/onkelhoy/CowboyGame/tree/old-version>, under `dist/content/`. The cowboy parts with dashed names are in papit at `packages/algorithms/math/armature/views/cowboy/public/`.
 
 **Engine**
 - `engine.timeScale` scales `deltaTime` and the fixed step alike. `dt` is capped at 0.1 s.
@@ -228,5 +228,5 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 
 - Songs: `La Tierra Va a Hablar` plays at the sign and the pole, `Dust and Steel` in a duel. The owner didn't say which is which, swap them in `SONGS` in `sound.ts` if wrong. They crossfade, and the music dips in slow motion.
 - Text: every word is in `asset/translations/en.json` and `sv.json` under `cowboy`. Swedish is picked by the browser's language, with no picker. The Swedish was written by the assistant, the owner should read it.
-- Pages: `npm run pages` makes `docs/`, checked under `/cowboy/` with no failed requests. Icons come from `asset/manifest.logo.svg`, else `asset/logo.svg`, else a drawn cylinder, made by `bin/icons.mjs` (PNGs through Playwright). No service worker.
+- Pages: `npm run pages` makes `docs/`, checked under `/cowboy/` with no failed requests, the base is `/CowboyGame/` now. Icons come from `asset/manifest.logo.svg`, else `asset/logo.svg`, else a drawn cylinder, made by `bin/icons.mjs` (PNGs through Playwright). No service worker.
 - The sound effects' source isn't written down, see `CREDITS.md`.

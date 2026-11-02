@@ -18,7 +18,7 @@
     "postversion": "papit-version",
     "test:chrome": "npm test -- --project=chromium",
     "test:logic": "npm test -- --project=logic",
-    "pages": "npm run build && npx @papit/static -- --base /cowboy/ --output ../../docs --info"
+    "pages": "npm run build && npx @papit/static -- --base /CowboyGame/ --output ../../docs --info"
   },
   "main": "./lib/bundle.js",
   "types": "./lib/bundle.d.ts",
@@ -40,13 +40,13 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/onkelhoy/cowboy/tree/main/packages/game",
+  "homepage": "https://github.com/onkelhoy/CowboyGame/tree/main/packages/game",
   "bugs": {
-    "url": "https://github.com/onkelhoy/cowboy/issues"
+    "url": "https://github.com/onkelhoy/CowboyGame/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onkelhoy/cowboy.git",
+    "url": "git+https://github.com/onkelhoy/CowboyGame.git",
     "directory": "packages/game"
   },
   "sideEffects": true,

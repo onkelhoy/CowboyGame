@@ -10,6 +10,9 @@ isolated/
 temp/
 .papit/
 
+# the site, built by .github/workflows/pages.yml
+docs/
+
 bin/version/.config
 
 # Ignore OS-specific files

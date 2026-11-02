@@ -34,13 +34,13 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/onkelhoy/cowboy/tree/main/packages/molecules/qr-code",
+  "homepage": "https://github.com/onkelhoy/CowboyGame/tree/main/packages/molecules/qr-code",
   "bugs": {
-    "url": "https://github.com/onkelhoy/cowboy/issues"
+    "url": "https://github.com/onkelhoy/CowboyGame/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onkelhoy/cowboy.git",
+    "url": "git+https://github.com/onkelhoy/CowboyGame.git",
     "directory": "packages/molecules/qr-code"
   },
   "sideEffects": true,

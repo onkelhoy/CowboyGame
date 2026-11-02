@@ -34,13 +34,13 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/onkelhoy/cowboy/tree/main/packages/molecules/share-link",
+  "homepage": "https://github.com/onkelhoy/CowboyGame/tree/main/packages/molecules/share-link",
   "bugs": {
-    "url": "https://github.com/onkelhoy/cowboy/issues"
+    "url": "https://github.com/onkelhoy/CowboyGame/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onkelhoy/cowboy.git",
+    "url": "git+https://github.com/onkelhoy/CowboyGame.git",
     "directory": "packages/molecules/share-link"
   },
   "sideEffects": true,

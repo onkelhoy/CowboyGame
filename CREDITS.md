@@ -1,6 +1,6 @@
 # Credits
 
-- **Code and art:** the cowboys, props and the game are by the owner. The cowboy and prop SVGs come from the first version of the game, [CowboyGame](https://github.com/onkelhoy/CowboyGame).
+- **Code and art:** the cowboys, props and the game are by the owner. The cowboy and prop SVGs come from the first version of the game, [CowboyGame](https://github.com/onkelhoy/CowboyGame/tree/old-version).
 - **Songs:** "Dust and Steel" and "La Tierra Va a Hablar", made for this game with Suno. They are in `asset/audio/song/`.
 - **Sound effects** (shots, hit, reload, empty click, bullet fly-by) are the ones from CowboyGame in `packages/game/asset/audio/`. Where they came from isn't written down in the old repository, so check this before the game is public.
 - **Font:** [Rye](https://fonts.google.com/specimen/Rye) by Sorkin Type, SIL Open Font License 1.1. The font and its licence are in `packages/game/asset/fonts/`.

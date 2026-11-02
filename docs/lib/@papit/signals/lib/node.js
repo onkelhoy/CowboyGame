@@ -1,1 +1,0 @@
-import{AsyncLocalStorage as u}from"async_hooks";var o=null;function c(t){let e=t,n=new Set;return[()=>(o&&(n.add(o.run),o.deps.add(n)),e),r=>{e=typeof r=="function"?r(e):r,n.forEach(s=>s())}]}var i=new u;function p(t){return i.run(t,t),()=>{}}function F(t){let[e,n]=c(void 0),f=p(()=>n(t()));return[e,f]}export{F as computed,p as effect,c as signal};

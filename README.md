@@ -50,9 +50,9 @@ Then open `http://localhost:3000/views/game/?signal=ws://localhost:3001` in two 
 | `npm start` | Builds the game and serves it with live rebuild |
 | `npm run signal` | Runs a local signal server on port 3001 |
 | `npm run build` | Builds every package |
-| `npm run pages` | Builds the static site into `docs/`, for GitHub Pages under `/cowboy/` |
+| `npm run pages` | Builds the static site into `docs/`, the same build GitHub Pages runs |
 
-There are no automated tests for now, by choice.
+No new tests are being written for now, by choice. The ones in `packages/game/tests` are from early on.
 
 ## How it works
 
@@ -74,7 +74,7 @@ The songs are in `asset/audio/song/`. Put `logo.svg`, and if you like `manifest.
 
 ## Put it online
 
-`npm run pages` writes the site to `docs/`. Commit it and set GitHub Pages to serve `main` from `/docs`. The site expects to live under `/cowboy/`, change `--base` in `packages/game/package.json` for another address.
+Every push to `main` builds the site with `@papit/static` and publishes it to <https://onkelhoy.github.io/CowboyGame/>, see `.github/workflows/pages.yml`. The site expects to live under `/CowboyGame/`, change `--base` in `packages/game/package.json` for another address. The 2018 game is on the `old-version` branch.
 
 ## Credits and licences
 
