@@ -31,6 +31,8 @@ export class Duel extends GameObject {
         super();
         left.opponent = right;
         right.opponent = left;
+        left.calibrate();
+        right.calibrate();
     }
 
     override update(dt: number) {
@@ -81,7 +83,7 @@ export class Duel extends GameObject {
             this.events.flyby();
         }
 
-        if (x < -100 || x > WORLD.width + 100 || y > GROUND_Y)
+        if (x < -100 || x > WORLD.width + 100 || y < -WORLD.height || y > GROUND_Y)
         {
             this.remove(bullet);
             this.bullets.delete(bullet);

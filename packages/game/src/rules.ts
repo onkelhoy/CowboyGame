@@ -42,7 +42,10 @@ export function step(state: CowboyState, held: boolean, dt: number): CowboyEvent
 
     if (!held) state.spent = false;
 
-    if (held && !state.spent)
+    // he stays up for as long as he holds, only a release ducks him
+    if (held && state.spent) return events;
+
+    if (held)
     {
         state.drawing = true;
         state.reload = 0;

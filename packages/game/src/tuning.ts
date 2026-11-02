@@ -9,15 +9,17 @@ export const COWBOY_X = 170;
 export const COWBOY_SCALE = 1.05;
 
 /** Seconds from fully down to fully up, slow enough for the other player to read. */
-export const RISE_TIME = .9;
+export const RISE_TIME = .4;
+/** How far up the gun is level, the rest of the rise is the window for an early shot. */
+export const GUN_LEVEL = .75;
 /** Seconds from fully up to fully down. */
 export const DUCK_TIME = .33;
 
 /** Below this part of the rise a release is only a feint. */
 export const DRAW_LINE = .35;
-/** Radians either way at the draw line, falling to 0 at the top. */
-export const SPREAD = 9 * Math.PI / 180;
-/** Seconds after a shot before he can duck. */
+/** Radians either way off the gun at the draw line, falling to 0 at the top. */
+export const SPREAD = 3 * Math.PI / 180;
+/** Seconds after a shot before a release can duck him. */
 export const RECOIL = .25;
 /** Seconds per bullet, only fully down. */
 export const RELOAD = .67;

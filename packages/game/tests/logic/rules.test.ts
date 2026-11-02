@@ -49,11 +49,15 @@ test("the top fires by itself, dead on, and only once", () => {
     expect(cowboy.ammo).toBe(AMMO - 1);
 
     expect(shots(run(cowboy, true, 2))).toEqual([]);
+    expect(cowboy.ammo).toBe(AMMO - 1);
 });
 
-test("there is no position to wait in, a held cowboy ducks after his shot", () => {
+test("he stays up after a shot for as long as he holds", () => {
     const cowboy = createCowboy();
-    run(cowboy, true, RISE_TIME + RECOIL + DUCK_TIME + .05);
+    run(cowboy, true, RISE_TIME + RECOIL + 2);
+    expect(cowboy.stand).toBe(1);
+
+    run(cowboy, false, RECOIL + DUCK_TIME + .05);
     expect(cowboy.stand).toBe(0);
 });
 
@@ -70,12 +74,11 @@ test("recoil keeps him up even when he lets go", () => {
 
 test("after a shot he has to let go and press again to rise", () => {
     const cowboy = createCowboy();
-    run(cowboy, true, RISE_TIME + RECOIL + DUCK_TIME + .1);
-    run(cowboy, true, .3);
+    run(cowboy, true, RISE_TIME + RECOIL + .1);
+    run(cowboy, false, DUCK_TIME + .05);
     expect(cowboy.stand).toBe(0);
 
-    run(cowboy, false, DT * 2);
-    run(cowboy, true, .3);
+    run(cowboy, true, .1);
     expect(cowboy.stand).toBeGreaterThan(0);
 });
 
@@ -84,9 +87,8 @@ test("pressing again during the recoil doesn't count, or the top would fire on r
     run(cowboy, true, RISE_TIME + .02);
     run(cowboy, false, RECOIL / 3);
 
-    const events = run(cowboy, true, RECOIL + DUCK_TIME + .05);
-    expect(shots(events)).toEqual([]);
-    expect(cowboy.stand).toBe(0);
+    expect(shots(run(cowboy, true, RECOIL + 1))).toEqual([]);
+    expect(cowboy.stand).toBe(1);
 });
 
 test("bullets come back one at a time, only fully down", () => {

@@ -5,6 +5,8 @@ import { GROUND_Y, WORLD } from "../tuning";
 /** How far sky and ground run past the world, for wider and taller screens. */
 const BEYOND = 4000;
 
+const FOG_HEIGHT = 240;
+
 const FAR = [[0, 0], [90, 0], [120, -52], [250, -60], [285, 0], [430, 0], [470, -96], [540, -104], [600, -92], [640, 0], [800, 0]] as const;
 const NEAR = [[0, 0], [60, 0], [85, -34], [190, -40], [230, 0], [520, 0], [560, -66], [700, -74], [745, 0], [1000, 0]] as const;
 
@@ -25,18 +27,26 @@ export class Backdrop extends GameObject {
         ctx.arc(WORLD.width * .68, 150, 62, 0, Math.PI * 2);
         ctx.fill();
 
+        // the haze settles over each row, so the far one sinks furthest into the sky
         mesas(ctx, FAR, 800, -60, 1.5, "#d98a5b");
+        fog(ctx, .8);
         mesas(ctx, NEAR, 1000, -320, 1.15, "#b9623f");
+        fog(ctx, .5);
 
-        const ground = ctx.createLinearGradient(0, GROUND_Y, 0, WORLD.height);
-        ground.addColorStop(0, "#c98a4e");
-        ground.addColorStop(1, "#8f5a30");
-        ctx.fillStyle = ground;
+        ctx.fillStyle = "#c98a4e";
         ctx.fillRect(-BEYOND, GROUND_Y, WORLD.width + BEYOND * 2, BEYOND);
 
         ctx.fillStyle = "#6f4322";
         ctx.fillRect(-BEYOND, GROUND_Y, WORLD.width + BEYOND * 2, 3);
     }
+}
+
+function fog(ctx: CanvasRenderingContext2D, thickness: number) {
+    const haze = ctx.createLinearGradient(0, GROUND_Y - FOG_HEIGHT, 0, GROUND_Y);
+    haze.addColorStop(0, "rgba(251, 230, 189, 0)");
+    haze.addColorStop(1, `rgba(251, 230, 189, ${thickness})`);
+    ctx.fillStyle = haze;
+    ctx.fillRect(-BEYOND, GROUND_Y - FOG_HEIGHT, WORLD.width + BEYOND * 2, FOG_HEIGHT);
 }
 
 function mesas(ctx: CanvasRenderingContext2D, shape: readonly (readonly [number, number])[], width: number, start: number, height: number, color: string) {

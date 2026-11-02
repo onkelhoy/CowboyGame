@@ -3,7 +3,7 @@ import type { CowboyState } from "../rules";
 type Plan = { wait: number; stopAt: number };
 
 const FEINT = [.15, .3];
-const SNAP = [.5, .9];
+const SNAP = [.9, .99];
 
 /** A simple opponent for practice: waits, then feints, snaps off a shot or goes all the way. */
 export function createBot(random: () => number = Math.random) {

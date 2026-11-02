@@ -1,5 +1,6 @@
 import { Armature, type Bone, type IK } from "@papit/armature";
 
+import { GUN_LEVEL } from "../tuning";
 import type { Parts } from "./outfit";
 import { Ragdoll, type RagdollBounds, type RagdollPoint } from "./ragdoll";
 
@@ -137,7 +138,7 @@ export class Body {
         const shoulderX = Math.cos(lean) * 48;
         const shoulderY = hipsY + Math.sin(lean) * 48;
 
-        const aim = -Math.PI / 5 + Math.PI / 3.5 * stand - Math.PI / 3 * shoot;
+        const aim = -Math.PI / 5 + Math.PI / 3.5 * Math.min(1, stand / GUN_LEVEL) - Math.PI / 3 * shoot;
         const reach = 50 + 20 * stand - 25 * shoot;
         hand[0] = shoulderX + Math.cos(aim) * reach;
         hand[1] = shoulderY + Math.sin(aim) * reach;
@@ -157,6 +158,12 @@ export class Body {
         const { head, tail } = this.rightLower;
         const along = 1 + MUZZLE / this.rightLower.length;
         return { x: head.x + (tail.x - head.x) * along, y: head.y + (tail.y - head.y) * along };
+    }
+
+    /** The way the gun points, in radians in rig units, along the forearm. */
+    get gunAngle() {
+        const { head, tail } = this.rightLower;
+        return Math.atan2(tail.y - head.y, tail.x - head.x);
     }
 
     /** Lines a bullet can hit, in rig units. */

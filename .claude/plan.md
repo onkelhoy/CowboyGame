@@ -8,7 +8,6 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
 - **Try it:** `npm start`, then <http://localhost:3000/views/game/?bot>. After a kill, practice starts over by itself after 3 s, a stopgap in `game.ts` until task 11.
-- **For the feel pass (task 12):** a shot from the top can be followed quickly by letting go after the recoil, dipping a little and pressing again, which keeps a cowboy high and firing about every 0.5 s. It's exposed and limited by ammo, so it stays unless playing shows it's too strong.
 
 ## The game now
 
@@ -16,9 +15,9 @@ The owner's notes change the brief's controls. This is the version the plan buil
 
 - Landscape only, and you always see the full map. Each player sees themselves on the left.
 - **Press and hold:** the cowboy rises and raises the gun. The rise is slow enough for the other player to read.
-- **Let go early:** below the draw line (35% up) he just ducks, no shot and no bullet spent. That's a feint. Above it he fires at once, and the earlier the release, the wilder the bullet.
-- **Hold to the top:** he fires by himself, dead on. There is no position to wait in, which is what stops camping.
-- **After any shot:** a short recoil he can't duck out of, then he ducks by himself. You must let go and press again to rise again.
+- **Let go early:** below the draw line (35% up) he just ducks, no shot and no bullet spent. That's a feint. Above it he fires at once, along the way the gun points right then, so a low shot goes up into the sky. A slight randomness on top shrinks to nothing at the top.
+- **Hold to the top:** he fires by himself, dead on.
+- **After any shot:** a short recoil he can't duck out of. He then stays up for as long as you hold, and only a release ducks him. You must let go and press again to rise again, so staying up gets you nothing but exposed.
 - **Duck:** fully down, bullets come back one at a time, up to 6. No ammo: an empty click, and you're standing there exposed.
 - **One hit:** slow motion, the winner on screen, back to speed, he falls and bleeds.
 
@@ -28,11 +27,12 @@ All in one `tuning.ts`, in seconds and world units, tuned by playing. The world 
 
 | Thing | Old | Start at |
 | --- | --- | --- |
-| Rise, bottom to top | 0.17 s | **0.9 s**, or nobody can see it or time it |
+| Rise, bottom to top | 0.17 s | 0.4 s, the owner found 0.9 s far too slow |
 | Duck, top to bottom | 0.33 s | 0.33 s |
 | Draw line | none | 35% up |
-| Spread | none | ±9° at the draw line, falling to 0 at the top |
-| Recoil lock | none | 0.25 s |
+| Spread | none | ±3° off the gun at the draw line, falling to 0 at the top |
+| Gun level | none | 75% up, the rest of the rise is the window for an early hit |
+| Recoil lock | none | 0.25 s, a release during it ducks him when it ends |
 | Reload | 0.67 s per bullet | 0.67 s per bullet, only fully down |
 | Bullet speed | 3900 per s | 3900 per s, about 0.2 s across |
 | Ragdoll | gravity .2, bounce .9, friction .99 per frame | 720 per s², bounce .9, friction `.99 ^ (60 * dt)` |
@@ -68,6 +68,7 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 | Call | Decision |
 | --- | --- |
 | Who decides a hit | The player being shot, since their pose is exact on their screen. A cheat could ignore hits, which is fine between friends. |
+| Bullet direction | The gun's real angle along the forearm, lined up once so that fully up it points at the other cowboy's standing head. Shots are taken before the kick moves the arm. |
 | Random bullet | The shooter rolls the spread and sends the final angle, so both screens show the same bullet. |
 | Both hit at once | A bullet already flying still counts. Both hits within the banner delay make a draw, and nobody scores. |
 | On the wire | Pose (stand, shoot) at 30 Hz on an unreliable room channel, `{ ordered: false, maxRetransmits: 0 }`. Shots, hits, round state and pings go reliably through `room.send`. |

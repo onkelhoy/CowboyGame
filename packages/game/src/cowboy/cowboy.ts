@@ -17,6 +17,8 @@ export class Cowboy extends GameObject {
     /** Who's holding. */
     control: () => boolean = () => false;
     alive = true;
+    /** Radians from the forearm to the barrel. */
+    private tilt = 0;
 
     constructor(private parts: Parts, x: number, readonly side: 1 | -1) {
         super();
@@ -41,7 +43,10 @@ export class Cowboy extends GameObject {
         }
 
         const events = step(this.state, this.control(), dt);
-        this.body.pose(this.state.stand, this.state.kick);
+
+        // the kick shows from the next frame, a shot leaves the way the gun pointed before it
+        const fired = events.some(event => event.type === "shot");
+        this.body.pose(this.state.stand, fired ? 0 : this.state.kick);
         return events;
     }
 
@@ -69,10 +74,19 @@ export class Cowboy extends GameObject {
         return this.toWorld(this.body.muzzle);
     }
 
-    /** The angle of a shot leaving now, before any spread. */
+    /** The angle of a shot leaving now, before any spread: the way the gun points. */
     get aim() {
+        const angle = this.body.gunAngle + this.tilt;
+        return this.side === 1 ? angle : Math.PI - angle;
+    }
+
+    /** Lines the gun up, so that fully up it points right at the other cowboy's head. */
+    calibrate() {
+        this.body.pose(1, 0);
         const muzzle = this.muzzle;
-        return Math.atan2(this.opponent.standingHead.y - muzzle.y, this.opponent.standingHead.x - muzzle.x);
+        const { x, y } = this.opponent.standingHead;
+        this.tilt = Math.atan2(y - muzzle.y, (x - muzzle.x) * this.side) - this.body.gunAngle;
+        this.body.pose(0, 0);
     }
 
     get hitLines(): Target[] {

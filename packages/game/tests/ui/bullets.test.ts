@@ -44,3 +44,18 @@ test("a hit cowboy falls down and stays on the ground, without bad numbers", asy
     expect(chest.y).toBeGreaterThan(-30);
     expect(errors).toEqual([]);
 });
+
+test("a shot from low down goes up the way the gun points", async ({ page }) => {
+    await page.goto("views/game/");
+    await page.waitForFunction(() => (window as any).cowboy);
+
+    const aim = (stand: number) => page.evaluate(async stand => {
+        const { left } = (window as any).cowboy;
+        left.body.pose(stand, 0);
+        return left.aim as number;
+    }, stand);
+
+    const low = await aim(.36), high = await aim(1);
+    expect(low).toBeLessThan(high - .3);
+    expect(Math.abs(high)).toBeLessThan(.3);
+});
