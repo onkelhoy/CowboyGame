@@ -14,6 +14,11 @@ const HEARTBEAT = .78;
 
 const LOUDNESS: Partial<Record<SoundName, number>> = { fly: .35, reload: .2 };
 
+/** The owner's songs, in the root `asset/audio/song/`. A missing one means silence. */
+const SONGS = { menu: "La Tierra Va a Hablar", duel: "Dust and Steel" };
+const FADE = 1.2;
+
+export type SongName = keyof typeof SONGS;
 export type SoundName = keyof typeof FILES;
 export type Volumes = { everything: number; music: number; sounds: number };
 
@@ -27,6 +32,9 @@ export class Sound {
     private buffers = new Map<SoundName, AudioBuffer[]>();
     private muted = false;
     private dipped = false;
+    private wanted: SongName | null = null;
+    private playing: { name: SongName; gain: GainNode; source: AudioBufferSourceNode } | null = null;
+    private songs = new Map<SongName, Promise<AudioBuffer | null>>();
 
     /** A browser only starts audio from a tap, so call this from one. */
     unlock() {
@@ -41,6 +49,7 @@ export class Sound {
             this.master.connect(this.context.destination);
             this.apply();
             void this.load();
+            void this.mix();
         }
 
         if (this.context.state === "suspended") void this.context.resume();
@@ -87,6 +96,55 @@ export class Sound {
         loudness.gain.value = LOUDNESS[name] ?? 1;
         source.connect(loudness).connect(sounds);
         source.start();
+    }
+
+    /** Which song plays, null for none. Before the first tap it waits, then starts. */
+    song(name: SongName | null) {
+        this.wanted = name;
+        void this.mix();
+    }
+
+    /** Fades the old song out and the wanted one in. */
+    private async mix() {
+        const { context, music, wanted } = this;
+        if (!context || !music || this.playing?.name === (wanted ?? undefined)) return;
+
+        const buffer = wanted ? await this.fetchSong(wanted) : null;
+        // it can change while the file is loading
+        if (this.wanted !== wanted) return;
+
+        const now = context.currentTime;
+        const old = this.playing;
+        if (old)
+        {
+            old.gain.gain.cancelScheduledValues(now);
+            old.gain.gain.setValueAtTime(old.gain.gain.value, now);
+            old.gain.gain.linearRampToValueAtTime(0, now + FADE);
+            old.source.stop(now + FADE);
+        }
+
+        this.playing = null;
+        if (!wanted || !buffer) return;
+
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        const gain = context.createGain();
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(1, now + FADE);
+        source.connect(gain).connect(music);
+        source.start();
+        this.playing = { name: wanted, gain, source };
+    }
+
+    private fetchSong(name: SongName) {
+        let song = this.songs.get(name);
+        if (!song)
+        {
+            song = this.decode(`/audio/song/${encodeURIComponent(SONGS[name])}.mp3`);
+            this.songs.set(name, song);
+        }
+        return song;
     }
 
     /** The old hit sound, stretched for slow motion. */

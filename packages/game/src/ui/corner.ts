@@ -7,33 +7,34 @@ import { effect } from "@papit/signals";
 import type { Hold } from "../input";
 import { cleanName, NAME_LENGTH, settings, updateSettings } from "../settings";
 import type { Sound, Volumes } from "../sound";
+import { t } from "../text";
 import { registerIcons } from "./icons";
 
 type Dialog = HTMLElement & { showModal(): void; close(): void };
 type Field = HTMLElement & { value: string };
 
-const VOLUMES: { name: keyof Volumes; label: string }[] = [
-    { name: "everything", label: "Everything" },
-    { name: "music", label: "Music" },
-    { name: "sounds", label: "Sounds" },
+const VOLUMES: { name: keyof Volumes; label: () => string }[] = [
+    { name: "everything", label: () => t("corner.everything") },
+    { name: "music", label: () => t("corner.music") },
+    { name: "sounds", label: () => t("corner.sounds") },
 ];
 
-const CORNER = `
-    <pap-button id="mute" size="icon" variant="clear" aria-label="Sound"><pap-icon name="sound-on"></pap-icon></pap-button>
-    <pap-button id="gear" size="icon" variant="clear" aria-label="Settings"><pap-icon name="settings"></pap-icon></pap-button>
+const cornerHtml = () => `
+    <pap-button id="mute" size="icon" variant="clear" aria-label="${t("corner.sound")}"><pap-icon name="sound-on"></pap-icon></pap-button>
+    <pap-button id="gear" size="icon" variant="clear" aria-label="${t("corner.settings")}"><pap-icon name="settings"></pap-icon></pap-button>
 `;
 
-const DIALOGS = `
-    <pap-dialog id="settings" header="Settings" close-outside-click>
-        <label class="row">Name <pap-input id="name" maxlength="${NAME_LENGTH}"></pap-input></label>
+const dialogsHtml = () => `
+    <pap-dialog id="settings" header="${t("corner.settings")}" close-outside-click>
+        <label class="row">${t("corner.name")} <pap-input id="name" maxlength="${NAME_LENGTH}"></pap-input></label>
         ${VOLUMES.map(({ name, label }) => `
-            <label class="row">${label} <input type="range" name="${name}" min="0" max="1" step=".01"></label>
+            <label class="row">${label()} <input type="range" name="${name}" min="0" max="1" step=".01"></label>
         `).join("")}
     </pap-dialog>
-    <pap-dialog id="ask-sound" header="Sound?" close-outside-click>
+    <pap-dialog id="ask-sound" header="${t("corner.question")}" close-outside-click>
         <div class="row">
-            <pap-button id="sound-yes">Sound on</pap-button>
-            <pap-button id="sound-no" variant="outline">No sound</pap-button>
+            <pap-button id="sound-yes">${t("corner.on")}</pap-button>
+            <pap-button id="sound-no" variant="outline">${t("corner.off")}</pap-button>
         </div>
     </pap-dialog>
 `;
@@ -44,9 +45,9 @@ export function mountCorner(sound: Sound, hold: Hold) {
 
     const corner = document.createElement("div");
     corner.id = "corner";
-    corner.innerHTML = CORNER;
+    corner.innerHTML = cornerHtml();
     const dialogs = document.createElement("div");
-    dialogs.innerHTML = DIALOGS;
+    dialogs.innerHTML = dialogsHtml();
     document.body.append(corner, dialogs);
 
     const find = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;

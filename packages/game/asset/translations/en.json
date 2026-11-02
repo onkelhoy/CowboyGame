@@ -2,5 +2,66 @@
   "meta": {
     "region": "GB",
     "language": "en"
+  },
+  "cowboy": {
+    "turn": "Turn your phone sideways",
+    "landing": {
+      "title": "Cowboy",
+      "challenged": "{name} challenges you to a duel!",
+      "challengedAnon": "You're challenged to a duel!",
+      "wanted": "WANTED",
+      "yourName": "Your name",
+      "withSound": "With sound",
+      "noSound": "No sound"
+    },
+    "corner": {
+      "sound": "Sound",
+      "settings": "Settings",
+      "name": "Name",
+      "everything": "Everything",
+      "music": "Music",
+      "sounds": "Sounds",
+      "question": "Sound?",
+      "on": "Sound on",
+      "off": "No sound"
+    },
+    "invite": {
+      "header": "Challenge a friend",
+      "send": "Send this link to your friend, or let them scan the code.",
+      "connecting": "Connecting...",
+      "left": "Your friend left. Send the link again for another duel.",
+      "ready": "I'm ready",
+      "waiting": "Waiting for {name}...",
+      "friend": "your friend",
+      "link": "Invite link"
+    },
+    "status": {
+      "joining": "Joining the duel...",
+      "waking": "Waking up the server, a free one needs a moment...",
+      "connecting": "Connecting...",
+      "failed": "Trouble connecting. Trying again...",
+      "failedMore": "Trouble connecting. A different network or the same wifi as your friend may help. Trying again...",
+      "away": "{name} left the tab...",
+      "someone": "Cowboy"
+    },
+    "round": {
+      "win": "You win!",
+      "lose": "They win!",
+      "draw": "Draw!",
+      "winDuel": "You win the duel!",
+      "loseDuel": "They win the duel!"
+    },
+    "message": {
+      "leftHeader": "Your friend left",
+      "leftText": "The game is over. You can start one of your own.",
+      "newGame": "New game",
+      "startNew": "Start a new game",
+      "fullHeader": "This game is full",
+      "fullText": "Two cowboys are already in this duel. Ask for a duel of your own.",
+      "endedHeader": "This game has ended",
+      "endedText": "Ask your friend for a new link. If they're still waiting, your networks may not be able to reach each other: try the same wifi.",
+      "failedHeader": "Couldn't connect",
+      "failedText": "Some networks block this kind of connection. Try the same wifi as your friend."
+    }
   }
 }

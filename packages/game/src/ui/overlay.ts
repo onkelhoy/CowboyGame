@@ -4,6 +4,7 @@ import "@cowboy/qr-code";
 import "@cowboy/share-link";
 
 import type { Hold } from "../input";
+import { t } from "../text";
 
 type Dialog = HTMLElement & { showModal(): void; close(): void; open: boolean };
 
@@ -17,15 +18,15 @@ const hide = (element: HTMLElement, hidden: boolean) => {
 
 const escape = (text: string) => text.replace(/[&<>"]/g, char => `&#${char.charCodeAt(0)};`);
 
-const HTML = `
+const html = () => `
     <div id="bars"><i></i><i></i></div>
     <div id="count" aria-live="assertive"></div>
     <div id="note" role="status" hidden></div>
     <div id="actions" hidden>
-        <pap-button id="ready" color="primary">I'm ready</pap-button>
-        <pap-button id="again" variant="outline" color="primary">Invite link</pap-button>
+        <pap-button id="ready" color="primary">${t("invite.ready")}</pap-button>
+        <pap-button id="again" variant="outline" color="primary">${t("invite.link")}</pap-button>
     </div>
-    <pap-dialog id="invite" header="Challenge a friend" close-outside-click>
+    <pap-dialog id="invite" header="${t("invite.header")}" close-outside-click>
         <p id="invite-text"></p>
         <cw-qr-code></cw-qr-code>
         <p id="invite-link"></p>
@@ -41,7 +42,7 @@ const HTML = `
 export function mountOverlay(hold: Hold) {
     const root = document.createElement("div");
     root.id = "overlay";
-    root.innerHTML = HTML;
+    root.innerHTML = html();
     document.body.append(root);
 
     const find = <T extends HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
@@ -100,7 +101,7 @@ export function mountOverlay(hold: Hold) {
             hide(actions, state.ready === null && !state.invite);
             hide(ready, state.ready === null);
             ready.toggleAttribute("disabled", state.ready === true);
-            ready.textContent = state.ready ? `Waiting for ${state.waitingFor || "your friend"}...` : "I'm ready";
+            ready.textContent = state.ready ? t("invite.waiting", { name: state.waitingFor || t("invite.friend") }) : t("invite.ready");
             hide(again, !state.invite);
         },
 

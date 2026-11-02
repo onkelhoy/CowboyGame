@@ -1,6 +1,5 @@
 import { Camera, GameEngine } from "@papit/game-engine";
 import { effect } from "@papit/signals";
-import { translator } from "@papit/translator";
 
 import { loadFont } from "./assets";
 import { Cowboy } from "./cowboy/cowboy";
@@ -18,6 +17,7 @@ import { Stage } from "./scene/fit";
 import { createMap } from "./scene/map";
 import { saveSettings, settings } from "./settings";
 import { Sound } from "./sound";
+import { loadText, t } from "./text";
 import { COWBOY_X, WORLD } from "./tuning";
 import { mountCorner } from "./ui/corner";
 import { showLanding } from "./ui/landing";
@@ -25,8 +25,8 @@ import { showLanding } from "./ui/landing";
 /** Boots the game on the page's canvas. `?bot` is a practice duel and `?stage` an empty map, both with no network. */
 export async function startGame() {
     void loadFont();
-    translator.add({ id: "en", url: "/translations/en.json" });
-    void translator.change("en");
+    await loadText();
+    document.querySelector("#turn p")!.textContent = t("turn");
 
     const query = new URLSearchParams(location.search);
     const practice = query.has("bot");
@@ -73,7 +73,7 @@ export async function startGame() {
     const kill: Kill = new Kill({
         engine, sound, blood, pools, banner,
         cowboys: [left, right],
-        text: winner => online ? online.banner(winner) : winner === left ? "You win!" : winner ? "They win!" : "Draw!",
+        text: winner => online ? online.banner(winner) : winner === left ? t("round.win") : winner ? t("round.lose") : t("round.draw"),
         done() {
             if (online) online.roundDone();
             else if (practice) clear();
@@ -103,6 +103,9 @@ export async function startGame() {
     engine.add(banner);
     engine.add(kill);
     engine.start();
+
+    if (practice) sound.song("duel");
+    else if (playing) sound.song("menu");
 
     if (playing)
     {

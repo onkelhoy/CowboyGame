@@ -6,6 +6,7 @@ import type { Hold } from "../input";
 import type { Invite } from "../link";
 import { cleanName, NAME_LENGTH, settings, updateSettings } from "../settings";
 import type { Sound } from "../sound";
+import { t } from "../text";
 
 type Field = HTMLElement & { value: string };
 
@@ -21,7 +22,7 @@ export async function showLanding(hold: Hold, sound: Sound, invite: Invite | nul
     // a friend who's been here before goes straight to the duel, the first tap unlocks their sound
     if (invite && name && mute !== null) return;
 
-    const headline = invite?.by ? `${escape(invite.by)} challenges you to a duel!` : invite ? "You're challenged to a duel!" : "Cowboy";
+    const headline = invite?.by ? t("landing.challenged", { name: escape(invite.by) }) : invite ? t("landing.challengedAnon") : t("landing.title");
 
     const landing = document.createElement("div");
     landing.id = "landing";
@@ -29,14 +30,14 @@ export async function showLanding(hold: Hold, sound: Sound, invite: Invite | nul
         <form class="sign">
             <p class="headline">${headline}</p>
             <div class="poster">
-                <h2>WANTED</h2>
+                <h2>${t("landing.wanted")}</h2>
                 ${name
                     ? `<p class="name">${escape(name)}</p>`
-                    : `<pap-input id="your-name" placeholder="Your name" maxlength="${NAME_LENGTH}" aria-label="Your name"></pap-input>`}
+                    : `<pap-input id="your-name" placeholder="${t("landing.yourName")}" maxlength="${NAME_LENGTH}" aria-label="${t("landing.yourName")}"></pap-input>`}
             </div>
             <div class="ride">
-                <pap-button id="with-sound" variant="${mute === true ? "outline" : "filled"}" color="primary">With sound</pap-button>
-                <pap-button id="no-sound" variant="${mute === true ? "filled" : "outline"}" color="primary">No sound</pap-button>
+                <pap-button id="with-sound" variant="${mute === true ? "outline" : "filled"}" color="primary">${t("landing.withSound")}</pap-button>
+                <pap-button id="no-sound" variant="${mute === true ? "filled" : "outline"}" color="primary">${t("landing.noSound")}</pap-button>
             </div>
         </form>
     `;

@@ -15,6 +15,7 @@ import type { Pole } from "./scene/pole";
 import type { Stage } from "./scene/fit";
 import { settings } from "./settings";
 import type { Sound } from "./sound";
+import { t } from "./text";
 import { BULLET_PUSH, NEXT_IN, POSE_EVERY, START_IN, WINS, WORLD } from "./tuning";
 import { mountOverlay } from "./ui/overlay";
 
@@ -94,6 +95,7 @@ export class Online {
         document.addEventListener("visibilitychange", this.visibility);
         window.addEventListener("pagehide", () => this.match?.send("bye"));
         this.pause("stage", true);
+        this.parts.sound.song("menu");
         this.parts.stage.go(0, 0);
         this.parts.hud.hidden = true;
     }
@@ -102,7 +104,7 @@ export class Online {
     async host() {
         this.asHost = true;
         effect(() => this.status(this.lobby.status()));
-        this.ui.invite.text("Connecting...");
+        this.ui.invite.text(t("status.connecting"));
         this.ui.invite.open();
         await this.lobby.start();
         await this.open();
@@ -112,7 +114,7 @@ export class Online {
     /** The guest's way in: the link they were sent. */
     async join({ game, host }: Invite) {
         effect(() => this.status(this.lobby.status()));
-        this.ui.note("Joining the duel...");
+        this.ui.note(t("status.joining"));
         await this.lobby.start();
 
         for (let attempt = 1; ; attempt++)
@@ -159,7 +161,7 @@ export class Online {
 
         this.shown = link;
         this.ui.invite.link(link);
-        this.ui.invite.text("Send this link to your friend, or let them scan the code.");
+        this.ui.invite.text(t("invite.send"));
         this.show();
     }
 
@@ -229,20 +231,21 @@ export class Online {
         this.phase = "pole";
         this.ready = [false, false];
         this.score = [0, 0];
+        this.parts.sound.song("menu");
         this.parts.stage.go(0, 900);
         this.show();
 
         if (host)
         {
             // the room is still open and the old link works, a friend can come in again
-            this.ui.invite.text("Your friend left. Send the link again for another duel.");
+            this.ui.invite.text(t("invite.left"));
             this.ui.invite.open();
             return;
         }
 
         this.match = null;
-        this.ui.message("Your friend left", "The game is over. You can start one of your own.", [
-            { label: "New game", run: () => location.assign(this.fresh()) },
+        this.ui.message(t("message.leftHeader"), t("message.leftText"), [
+            { label: t("message.newGame"), run: () => location.assign(this.fresh()) },
         ]);
     }
 
@@ -254,11 +257,11 @@ export class Online {
 
     private fail(reason: Failure) {
         this.ui.note("");
-        const choice = [{ label: "Start a new game", run: () => location.assign(this.fresh()) }];
+        const choice = [{ label: t("message.startNew"), run: () => location.assign(this.fresh()) }];
 
-        if (reason === "full") this.ui.message("This game is full", "Two cowboys are already in this duel. Ask for a duel of your own.", choice);
-        else if (reason === "ended") this.ui.message("This game has ended", "Ask your friend for a new link. If they're still waiting, your networks may not be able to reach each other: try the same wifi.", choice);
-        else this.ui.message("Couldn't connect", "Some networks block this kind of connection. Try the same wifi as your friend.", choice);
+        if (reason === "full") this.ui.message(t("message.fullHeader"), t("message.fullText"), choice);
+        else if (reason === "ended") this.ui.message(t("message.endedHeader"), t("message.endedText"), choice);
+        else this.ui.message(t("message.failedHeader"), t("message.failedText"), choice);
     }
 
     // ------------------------------------------------------------------ the pole
@@ -267,7 +270,7 @@ export class Online {
     private show() {
         const { pole } = this.parts;
         const mine = settings().name || "???";
-        const theirs = this.match?.peer ? this.match.name() || "Cowboy" : "???";
+        const theirs = this.match?.peer ? this.match.name() || t("status.someone") : "???";
         pole.names[0] = this.ready[0] ? `${mine} ✓` : mine;
         pole.names[1] = this.ready[1] ? `${theirs} ✓` : theirs;
 
@@ -291,9 +294,9 @@ export class Online {
         if (this.phase !== "connecting") return;
 
         if (status === "failed") this.tries++;
-        const words = status === "waking" ? "Waking up the server, a free one needs a moment..."
-            : status === "failed" ? `Trouble connecting${this.tries > 1 ? ". A different network or the same wifi as your friend may help" : ""}. Trying again...`
-                : status === "ready" ? "" : "Connecting...";
+        const words = status === "waking" ? t("status.waking")
+            : status === "failed" ? t(this.tries > 1 ? "status.failedMore" : "status.failed")
+                : status === "ready" ? "" : t("status.connecting");
 
         if (!this.asHost) this.ui.note(words);
         else if (words) this.ui.invite.text(words);
@@ -322,6 +325,7 @@ export class Online {
         this.ready = [false, false];
         parts.hud.hidden = false;
         this.pause("stage", true);
+        this.parts.sound.song("duel");
         this.show();
 
         if (fresh)
@@ -386,9 +390,9 @@ export class Online {
         else if (winner === right) this.score[1]++;
 
         const over = this.score.some(wins => wins >= WINS);
-        if (!winner) return "Draw!";
-        if (winner === left) return over ? "You win the duel!" : "You win!";
-        return over ? "They win the duel!" : "They win!";
+        if (!winner) return t("round.draw");
+        if (winner === left) return t(over ? "round.winDuel" : "round.win");
+        return t(over ? "round.loseDuel" : "round.lose");
     }
 
     /** The win sign has had its time. The host decides what comes next. */
@@ -439,6 +443,7 @@ export class Online {
         this.parts.stage.go(0, 1200);
         this.parts.hud.hidden = true;
         this.pause("stage", true);
+        this.parts.sound.song("menu");
         this.show();
     }
 
@@ -462,7 +467,7 @@ export class Online {
             this.ui.count("");
             this.pause("away", true);
             this.parts.engine.timeScale = 0;
-            if (who === 1) this.ui.note(`${this.match?.name() || "Your friend"} left the tab...`);
+            if (who === 1) this.ui.note(t("status.away", { name: this.match?.name() || t("invite.friend") }));
         }
 
         if (!away && !this.away[0] && !this.away[1])
