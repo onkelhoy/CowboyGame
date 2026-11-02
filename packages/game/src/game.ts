@@ -3,6 +3,7 @@ import { effect } from "@papit/signals";
 
 import { Cowboy } from "./cowboy/cowboy";
 import { loadParts, OUTFITS } from "./cowboy/outfit";
+import { loadFont } from "./assets";
 import { Banner } from "./duel/banner";
 import { Blood, BloodPools } from "./duel/blood";
 import { createBot } from "./duel/bot";
@@ -10,15 +11,20 @@ import { Duel } from "./duel/duel";
 import { Kill } from "./duel/kill";
 import { Hud } from "./hud";
 import { Hold } from "./input";
+import { parseInvite } from "./link";
 import { saveSettings, settings } from "./settings";
 import { Sound } from "./sound";
 import { fitWorld } from "./scene/fit";
 import { createMap } from "./scene/map";
 import { COWBOY_X, WORLD } from "./tuning";
 import { mountCorner } from "./ui/corner";
+import { showLanding } from "./ui/landing";
 
 /** Boots the game on the page's canvas. */
 export async function startGame() {
+    void loadFont();
+
+    const query = new URLSearchParams(location.search);
     const engine = new GameEngine({ name: "main", query: "canvas" });
     engine.defaultLayer.camera = new Camera({ controllers: [fitWorld()] });
 
@@ -29,7 +35,7 @@ export async function startGame() {
     const hold = new Hold(engine.canvas);
     left.control = () => hold.held;
 
-    const practice = new URLSearchParams(location.search).has("bot");
+    const practice = query.has("bot");
     if (practice)
     {
         const bot = createBot();
@@ -83,5 +89,9 @@ export async function startGame() {
     engine.add(kill);
 
     engine.start();
+
+    // `?bot` and `?stage` go straight to the map, for tuning and tests
+    if (!practice && !query.has("stage")) void showLanding(hold, sound, parseInvite(location.search));
+
     return { engine, map, left, right, hold, duel, sound, kill, banner };
 }

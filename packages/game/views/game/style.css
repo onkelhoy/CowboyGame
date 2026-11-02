@@ -30,7 +30,7 @@ canvas {
     gap: 16px;
     background: #2b1d14;
     color: #f7cf8e;
-    font: bold 20px Georgia, serif;
+    font: 20px Rye, Georgia, serif;
     text-align: center;
 }
 
@@ -43,6 +43,7 @@ canvas {
 
 #corner {
     position: fixed;
+    z-index: 2;
     top: calc(env(safe-area-inset-top) + 8px);
     right: calc(env(safe-area-inset-right) + 8px);
     display: flex;
@@ -67,4 +68,103 @@ pap-dialog .row {
 pap-dialog input[type="range"] {
     width: 100%;
     accent-color: var(--primary, currentColor);
+}
+
+#landing {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    background: rgba(43, 29, 20, .35);
+    color: #3a2010;
+    font-family: Rye, Georgia, serif;
+}
+
+.sign {
+    position: relative;
+    box-sizing: border-box;
+    height: min(96dvh, 112vw);
+    aspect-ratio: 347 / 407;
+    container-type: size;
+    background: center / contain no-repeat;
+}
+
+.sign.nudge {
+    animation: nudge .3s;
+}
+
+@keyframes nudge {
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+
+.sign .headline {
+    position: absolute;
+    inset: 3% 6% auto;
+    height: 20%;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    font-size: 6cqh;
+    line-height: 1.15;
+    text-align: center;
+}
+
+.sign .poster {
+    position: absolute;
+    top: 28%;
+    left: 31%;
+    width: 38%;
+    height: 38%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3cqh;
+    text-align: center;
+}
+
+.sign .poster h2 {
+    margin: 0;
+    font: inherit;
+    font-size: 6.2cqh;
+}
+
+.sign .poster .name {
+    margin: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: 5cqh;
+}
+
+.sign .poster pap-input {
+    width: 100%;
+    font: 16px Georgia, serif;
+    text-align: left;
+}
+
+.sign .ride {
+    position: absolute;
+    top: 74%;
+    left: 22%;
+    right: 22%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5cqh;
+}
+
+.sign .ride pap-button {
+    --primary: #54301a;
+    --on-primary: #fbe6bd;
+    width: 100%;
+    font-family: inherit;
+    border-radius: 6px;
+    background: #fbe6bd;
+    color: #3a2010;
+}
+
+.sign .ride pap-button[variant="filled"] {
+    background: #54301a;
+    color: #fbe6bd;
 }

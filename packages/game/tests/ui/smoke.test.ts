@@ -5,7 +5,7 @@ test("the game page starts without errors", async ({ page }) => {
     page.on("pageerror", error => errors.push(error.message));
     page.on("response", response => response.status() >= 400 && errors.push(`${response.status()} ${response.url()}`));
 
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
 
     const canvas = page.locator("canvas");
     await expect(canvas).toBeVisible();

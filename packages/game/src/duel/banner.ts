@@ -67,7 +67,7 @@ export class Banner extends GameObject {
             ctx.fill();
         }
 
-        ctx.font = "bold 40px Georgia, serif";
+        ctx.font = "40px Rye, Georgia, serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = INK;

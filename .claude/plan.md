@@ -4,10 +4,10 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 12, the feel pass, which needs the owner playing. Task 11 is done.
+- **Next:** task 15, the lobby. Tasks 11, 13 and 14 are done. Task 12, the feel pass, is still open and needs the owner playing.
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
-- **Try it:** `npm start`, then <http://localhost:3000/views/game/?bot>. After a kill, practice starts over by itself, online rounds come with task 22.
+- **Try it:** `npm start`, then <http://localhost:3000/views/game/?bot>. `?bot` and `?stage` skip the landing sign, UI tests use `?stage`. After a kill, practice starts over by itself, online rounds come with task 22.
 
 ## The game now
 
@@ -88,7 +88,7 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 | Packages | `packages/game` (game template), plus `packages/qr-code` and `packages/share-link`, so those two can move to papit later as they are. |
 | QR and share link | Copy from papchat now, move to papit later. The papchat tests are worth bringing along. |
 | Hosting | `@papit/static` to GitHub Pages with `--base /cowboy/`, as in papchat's `npm run pages`. |
-| Licences | Ship neither ZitronSound nor Durango Western. Suno songs replace the music, and a free-licence western font, self-hosted, replaces the font. |
+| Licences | Ship neither ZitronSound nor Durango Western. Suno songs replace the music. The font is Rye, SIL OFL, self-hosted in `asset/fonts/` with its licence. |
 
 ## Blockers, checked 2026-11-02
 
@@ -200,6 +200,14 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - The signal server strikes messages under 200 ms apart. Papchat spaces its own calls 1 s apart.
 - `merge` needs `acceptMerge` on the client, or the race guard can't merge two lobbies.
 - Lobby logic to copy: `packages/foundations/core/src/lobby.ts` in papchat, lines 410 to 550 and 756 to 815.
+
+**Lobby, for tasks 15 and 16 (read 2026-11-02)**
+- `@papit/webrtc`, `signals`, `button`, `dialog`, `input`, `icon`, `translator` and `web-component` are installed. `npm run signal` runs a local signal server on port 3001. The brief says `ws://localhost:3000`, so check `signalUrl` in papchat's `config.ts` lines 69 to 85 before copying it.
+- Papchat values: STUN `stun:stun.l.google.com:19302`, `serverGapMs` 1000, `raceGuardMs` 2000, retry 3 s doubling to 30 s. Canonical is the smallest `meta.created`, then the smallest id. Only the younger network's host merges, after filtering `list()` on `meta.app` and `meta.kind`.
+- `Client` options to set: `url`, `rtc`, `topology: "chord"`, `acceptMerge`. `keepSocket` defaults to `"host"`, so members close their socket once linked.
+- `accept(newcomer, info)` gets a `NetworkInfo`. The brief's `info.size` didn't show up in the types, check it before relying on it.
+- `src/link.ts` already has `parseInvite` and `inviteLink`, with tests. `showLanding` in `game.ts` resolves when the sign is answered, and that's where hosting or joining starts.
+- `qr-code` is 76 lines plus `qr.ts`, `share-link` is 80 lines, both in papchat's `packages/molecules/`. Their translations go with them.
 
 ## Papit gaps to report
 

@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 const saved = () => (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem("cowboy.settings")!));
 
 test.beforeEach(async ({ page }) => {
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
     await page.waitForFunction(() => (window as any).cowboy);
 });
 

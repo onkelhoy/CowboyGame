@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("holding to the top kills a standing cowboy and flies over a ducked one", async ({ page }) => {
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
     await page.waitForFunction(() => (window as any).cowboy);
 
     const alive = () => page.evaluate(() => (window as any).cowboy.right.alive as boolean);
@@ -30,7 +30,7 @@ test("a hit cowboy falls down and stays on the ground, without bad numbers", asy
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
 
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
     await page.waitForFunction(() => (window as any).cowboy);
     await page.evaluate(() => Object.assign((window as any).cowboy.right.state, { stand: 1, recoil: 60 }));
 
@@ -71,7 +71,7 @@ test("practice starts over after a kill, at full speed and with a clean map", as
 });
 
 test("two hits in the slow motion make a draw", async ({ page }) => {
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
     await page.waitForFunction(() => (window as any).cowboy);
 
     await page.evaluate(() => {
@@ -86,7 +86,7 @@ test("two hits in the slow motion make a draw", async ({ page }) => {
 });
 
 test("a shot from low down goes up the way the gun points", async ({ page }) => {
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
     await page.waitForFunction(() => (window as any).cowboy);
 
     const aim = (stand: number) => page.evaluate(async stand => {

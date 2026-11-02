@@ -4,7 +4,7 @@ test("sound starts on the first tap, and a shot plays without errors", async ({ 
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
 
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
     await page.waitForFunction(() => (window as any).cowboy);
     expect(await page.evaluate(() => (window as any).cowboy.sound.running)).toBe(false);
 
@@ -19,7 +19,7 @@ test("sound starts on the first tap, and a shot plays without errors", async ({ 
 });
 
 test("the volumes save their values and mute keeps them", async ({ page }) => {
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
     await page.waitForFunction(() => (window as any).cowboy);
 
     const result = await page.evaluate(() => {

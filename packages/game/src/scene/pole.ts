@@ -66,7 +66,7 @@ function arrow(ctx: CanvasRenderingContext2D, side: -1 | 1, y: number, name: str
         ctx.fill();
     }
 
-    ctx.font = "bold 22px Georgia, serif";
+    ctx.font = "20px Rye, Georgia, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#3a2010";

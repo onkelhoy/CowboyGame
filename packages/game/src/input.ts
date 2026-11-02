@@ -2,10 +2,10 @@
 export class Hold {
     private pointer: number | null = null;
     private key = false;
-    private enabled = true;
+    private pauses = new Set<string>();
 
     get held() {
-        return this.enabled && (this.pointer !== null || this.key);
+        return !this.pauses.size && (this.pointer !== null || this.key);
     }
 
     constructor(private target: HTMLElement) {
@@ -19,10 +19,14 @@ export class Hold {
         document.addEventListener("visibilitychange", this.release);
     }
 
-    /** A hold never survives a switch off, so nothing fires when control comes back. */
-    set active(value: boolean) {
-        this.enabled = value;
-        if (!value) this.release();
+    /** Something on top takes the control. A hold never survives that, so nothing fires after it. */
+    pause(reason: string, paused: boolean) {
+        if (paused)
+        {
+            this.pauses.add(reason);
+            this.release();
+        }
+        else this.pauses.delete(reason);
     }
 
     destroy() {

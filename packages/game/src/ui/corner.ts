@@ -64,7 +64,7 @@ export function mountCorner(sound: Sound, hold: Hold) {
 
     find("#mute").addEventListener("click", event => {
         const { mute } = settings();
-        if (mute === null) open(question);
+        if (mute === null) question.showModal();
         else updateSettings({ mute: !mute });
         letGo(event);
     });
@@ -73,7 +73,7 @@ export function mountCorner(sound: Sound, hold: Hold) {
         const { name: current, volumes } = settings();
         name.value = current;
         for (const { name } of VOLUMES) find<HTMLInputElement>(`input[name=${name}]`).value = String(volumes[name]);
-        open(panel);
+        panel.showModal();
         letGo(event);
     });
 
@@ -97,20 +97,10 @@ export function mountCorner(sound: Sound, hold: Hold) {
     });
 
     // no duel behind a dialog, and whatever was held doesn't fire when it opens
-    let opened = 0;
-    const open = (dialog: Dialog) => {
-        dialog.showModal();
-    };
     for (const dialog of [panel, question])
     {
-        dialog.addEventListener("open", () => {
-            opened++;
-            hold.active = false;
-        });
-        dialog.addEventListener("close", () => {
-            opened = Math.max(0, opened - 1);
-            if (!opened) hold.active = true;
-        });
+        dialog.addEventListener("open", () => hold.pause(dialog.id, true));
+        dialog.addEventListener("close", () => hold.pause(dialog.id, false));
     }
 }
 

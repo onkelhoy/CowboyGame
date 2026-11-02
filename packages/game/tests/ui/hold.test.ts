@@ -4,7 +4,7 @@ const held = (page: Page) => page.evaluate(() => (window as any).cowboy.hold.hel
 const ready = (page: Page) => page.waitForFunction(() => (window as any).cowboy);
 
 test.beforeEach(async ({ page }) => {
-    await page.goto("views/game/");
+    await page.goto("views/game/?stage");
     await ready(page);
 });
 
