@@ -27,11 +27,11 @@ All in one `tuning.ts`, in seconds and world units, tuned by playing. The world 
 
 | Thing | Old | Start at |
 | --- | --- | --- |
-| Rise, bottom to top | 0.17 s | 0.25 s, the owner found 0.9 s and 0.4 s too slow |
+| Rise, bottom to top | 0.17 s | 0.18 s, the owner found 0.9 s, 0.4 s and 0.25 s too slow |
 | Duck, top to bottom | 0.33 s | 0.18 s |
 | Draw line | none | 35% up |
 | Spread | none | ±3° off the gun at the draw line, falling to 0 at the top |
-| Gun level | none | 75% up. Above that the body's lean still tips the gun, so an early release only hits a standing head from about 91% up, roughly 20 ms before the top |
+| Gun level | none | 75% up. Above that the body's lean still tips the gun, so an early release only hits a standing head from about 91% up, roughly 15 ms before the top |
 | Recoil lock | none | 0.25 s, a release during it ducks him when it ends |
 | Reload | 0.67 s per bullet | 0.67 s per bullet, only fully down |
 | Bullet speed | 3900 per s | 3900 per s, about 0.2 s across |
