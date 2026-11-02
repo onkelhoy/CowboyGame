@@ -4,7 +4,7 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 26, music. Tasks 13 to 25 are done. Task 12, the feel pass, is still open and needs the owner playing.
+- **Next:** task 12, the feel pass, and task 31, the live test with a friend. Both need the owner. Everything else is built, except task 28, which is skipped because there are no tests for now. The owner pushes: `docs/` holds the site from `npm run pages`, and `github.com/onkelhoy/cowboy` has to exist first.
 - **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. This overrides the brief and any task below that mentions tests, including task 28.
 - **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
@@ -223,3 +223,10 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - `line-intersection` isn't in `.claude/CATALOG.md`.
 - `pap-button` has its own `display`, so the `hidden` attribute doesn't hide it. We set `style.display` as well.
 - The server's page template adds its own `<title>@papit/server</title>` first, so a page's title loses in dev. Check the static template in task 30.
+
+## Notes from tasks 26 to 30
+
+- Songs: `La Tierra Va a Hablar` plays at the sign and the pole, `Dust and Steel` in a duel. The owner didn't say which is which, swap them in `SONGS` in `sound.ts` if wrong. They crossfade, and the music dips in slow motion.
+- Text: every word is in `asset/translations/en.json` and `sv.json` under `cowboy`. Swedish is picked by the browser's language, with no picker. The Swedish was written by the assistant, the owner should read it.
+- Pages: `npm run pages` makes `docs/`, checked under `/cowboy/` with no failed requests. Icons come from `asset/manifest.logo.svg`, else `asset/logo.svg`, else a drawn cylinder, made by `bin/icons.mjs` (PNGs through Playwright). No service worker.
+- The sound effects' source isn't written down, see `CREDITS.md`.

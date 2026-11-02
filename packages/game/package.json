@@ -8,8 +8,8 @@
   ],
   "version": "0.0.1",
   "scripts": {
-    "prestart": "node bin/sync-assets.mjs && npm run build",
-    "prebuild": "node bin/sync-assets.mjs",
+    "prestart": "node bin/sync-assets.mjs && node bin/icons.mjs && npm run build",
+    "prebuild": "node bin/sync-assets.mjs && node bin/icons.mjs",
     "build": "npx @papit/build -- --error --ancestors",
     "watch": "tsc -w",
     "start": "npx @papit/server --info --live",
@@ -17,7 +17,8 @@
     "preversion": "papit-version",
     "postversion": "papit-version",
     "test:chrome": "npm test -- --project=chromium",
-    "test:logic": "npm test -- --project=logic"
+    "test:logic": "npm test -- --project=logic",
+    "pages": "npm run build && npx @papit/static -- --base /cowboy/ --output ../../docs --info"
   },
   "main": "./lib/bundle.js",
   "types": "./lib/bundle.d.ts",

@@ -1,0 +1,1 @@
+var f=null,c=n=>{f=n};function s(n){let t=n,e=new Set;return[()=>(f&&(e.add(f.run),f.deps.add(e)),t),o=>{t=typeof o=="function"?o(t):o,e.forEach(u=>u())}]}function d(n){let t=new Set,e=()=>{c({run:e,deps:t}),n(),c(null)};return e(),()=>t.forEach(r=>r.delete(e))}function E(n){let[t,e]=s(void 0),r=d(()=>e(n()));return[t,r]}export{E as computed,d as effect,s as signal};

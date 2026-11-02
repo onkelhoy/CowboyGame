@@ -23,3 +23,8 @@ Thumbs.db
 
 # copied from the root asset folder
 asset/owner/
+
+# made by bin/icons.mjs
+views/game/manifest.logo.svg
+views/game/manifest.logo-*.png
+views/game/favicon.svg

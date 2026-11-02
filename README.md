@@ -1,45 +1,81 @@
-# @cowboy/root
+# Cowboy
 
-![Logo](https://raw.githubusercontent.com/onkelhoy/cowboy/refs/heads/main/asset/logo.svg)
+A two player online cowboy duel, built on [papit](https://github.com/onkelhoy/papit). Send a friend a link, they open it, and you shoot each other. One hit wins the round, first to three wins the duel.
 
-## Introduction
+## How to play
 
-[Provide a brief description of your project. Explain what it does and what makes it unique or valuable. Mention the key features and any important technologies used.]
+One control: press and hold with the mouse, a finger, or space.
 
-## Getting Started
+- **Hold:** your cowboy rises and raises his gun. The rise is slow enough for the other player to read.
+- **Let go early:** below halfway he just ducks. No shot, no bullet spent. It's a feint.
+- **Let go above halfway:** he fires at once, along the way the gun points right then. A low shot goes up into the sky, a high one is nearly dead on.
+- **Hold to the top:** he fires by himself, dead on.
+- **After a shot:** a short recoil he can't duck out of, then he stays up for as long as you hold. Let go and he goes all the way down. He can't rise again until he has been fully down.
+- **Duck to reload:** fully down, bullets come back one at a time, up to six. With none left you only get an empty click.
+- Barrels stop low bullets, so ducking behind them is cover.
 
-### Prerequisites
+## Play
 
-- [List any prerequisites needed to run your project, like Node.js, npm, etc.]
-- [Include any other requirements, like a specific browser or environment.]
+1. Open the game, give yourself a name and choose sound or no sound.
+2. A dialog shows a QR code and a link. Send the link to a friend, or let them scan the code.
+3. Your friend opens it, gives a name, and is at the pole with you. Both press "I'm ready".
+4. The camera zooms out, 3, 2, 1, GO!
 
-### Installation
+Phones should be held sideways during a duel. The name sign and the invite dialog work upright. Name, volumes and mute are saved on the device, and the buttons in the top right corner change them any time. The game speaks English and Swedish, by the browser's language.
 
-1. Clone the repo:
-2. Install NPM packages:
+## Run it
 
-## Usage
+Needs Node 20 or newer.
 
-[Provide instructions on how to use your project. This could include steps to run it, how to navigate the interface, or examples of its functionality.]
+```bash
+npm install
+npm start          # builds, then serves http://localhost:3000/views/game/
+```
 
-## Important Commands
+Without a friend: `?bot` gives a practice opponent, `?stage` is the empty map, both with no network. Example: <http://localhost:3000/views/game/?bot>.
 
-- `command1`: [Explain what this command does.]
-- `command2`: [Explain what this command does.]
-- [Include as many commands as necessary, providing clear explanations for each.]
+Online, the game uses the same signal server as papchat, on Render's free tier. It sleeps when nobody uses it, so the first player may wait a few seconds ("waking up the server"). To run your own and have two browsers play on your machine:
 
-## Contributing
+```bash
+npm run signal     # a signal server on ws://localhost:3001
+npm start
+```
 
-[If you're open to contributions, explain how others can contribute to your project. Provide any guidelines or rules for contributing.]
+Then open `http://localhost:3000/views/game/?signal=ws://localhost:3001` in two browsers or profiles. The invite link keeps the `?signal=` part.
 
-## License
+## Commands
 
-[Specify the type of license under which your project is released, if applicable.]
+| Command | What it does |
+| --- | --- |
+| `npm start` | Builds the game and serves it with live rebuild |
+| `npm run signal` | Runs a local signal server on port 3001 |
+| `npm run build` | Builds every package |
+| `npm run pages` | Builds the static site into `docs/`, for GitHub Pages under `/cowboy/` |
 
-## Contact
+There are no automated tests for now, by choice.
 
-[Provide your contact information or the contact information of the project maintainer.]
+## How it works
 
----
+- **One shared network.** Every player joins one chord network on the signal server, a lobby nobody sees: the oldest one wins, and two created at once merge. A duel is a room inside it, opened with no server call, so the signal server only ever sees one network, and the game goes on if it sleeps.
+- **The link** carries the room's id, the host's peer id and the host's name (`?game=…&host=…&by=…`). A host whose id changed before a friend came gets a fresh link.
+- **On the wire:** pose at 30 Hz over an unreliable data channel; shots, hits and round state over the reliable one. The other cowboy is moved forward by half the round trip. A shared clock, found with five pings, starts everyone on the same GO.
+- **The player who is shot decides the hit,** since their own pose is exact on their screen. A bullet already flying still counts, so two hits close together make a draw.
+- Everything tuned by playing is in `packages/game/src/tuning.ts`.
 
-[Feel free to include any additional sections that are relevant to your project, such as 'Acknowledgements', 'Credits', 'Known Issues', etc.]
+## Layout
+
+| Package | What it is |
+| --- | --- |
+| `packages/game` | The game, its page in `views/game/`, art and sound effects |
+| `packages/qr-code` | An SVG QR code element, made in the browser. Copied from papchat, meant for papit |
+| `packages/share-link` | A button that shares or copies a link. Copied from papchat, meant for papit |
+
+The songs are in `asset/audio/song/`. Put `logo.svg`, and if you like `manifest.logo.svg` (for the home screen icon), in `asset/`: the page icons are made from them, a drawn revolver cylinder stands in until then.
+
+## Put it online
+
+`npm run pages` writes the site to `docs/`. Commit it and set GitHub Pages to serve `main` from `/docs`. The site expects to live under `/cowboy/`, change `--base` in `packages/game/package.json` for another address.
+
+## Credits and licences
+
+See [CREDITS.md](CREDITS.md).
