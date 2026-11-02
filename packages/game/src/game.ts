@@ -5,7 +5,7 @@ import { loadParts, OUTFITS } from "./cowboy/outfit";
 import { Hold } from "./input";
 import { fitWorld } from "./scene/fit";
 import { createMap } from "./scene/map";
-import { COWBOY_X, DUCK_TIME, RISE_TIME, WORLD } from "./tuning";
+import { COWBOY_X, WORLD } from "./tuning";
 
 /** Boots the game on the page's canvas. */
 export async function startGame() {

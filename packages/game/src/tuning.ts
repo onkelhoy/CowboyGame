@@ -12,3 +12,15 @@ export const COWBOY_SCALE = 1.05;
 export const RISE_TIME = .9;
 /** Seconds from fully up to fully down. */
 export const DUCK_TIME = .33;
+
+/** Below this part of the rise a release is only a feint. */
+export const DRAW_LINE = .35;
+/** Radians either way at the draw line, falling to 0 at the top. */
+export const SPREAD = 9 * Math.PI / 180;
+/** Seconds after a shot before he can duck. */
+export const RECOIL = .25;
+/** Seconds per bullet, only fully down. */
+export const RELOAD = .67;
+export const AMMO = 6;
+/** How fast the kick of a shot fades, per second. */
+export const KICK_FADE = 4;
