@@ -55,7 +55,7 @@ All in one `tuning.ts`, in seconds and world units, tuned by playing. The world 
 
 The concept is "challenge your friend". There's no main menu, only the game behind whatever is on top.
 
-1. **Landing, host:** a wooden sign asks for a name and sound on or off, on the same sign. A saved name skips the name step. Then the QR dialog opens by itself, with the link and copy button. It shows "waking up" until the link exists. This dialog is plain UI, everything else feels cowboy.
+1. **Landing, host:** a wooden sign asks for a name, with one button, "Challenge a friend". Sound is on by default and the mute icon in the corner is the only control for it. The tap unlocks audio. Then the QR dialog opens by itself, with the link and copy button. It shows "waking up" until the link exists. This dialog is plain UI, everything else feels cowboy.
 2. **Landing, guest:** the same sign, with the invite on it, "Henry challenges you to a duel!". The link carries the host's name as `by=`. If the name is saved, they join right away.
 3. **The pole:** the camera sits zoomed in on a wooden pole at the middle of the map, with two cartoon arrow signs on top pointing left and right, one player's name on each. Until the friend arrives, their sign reads "???". When they arrive the QR dialog closes and their name goes up.
 4. **Ready:** both get an "I'm ready" button, and the sign shows who is ready.
@@ -64,7 +64,7 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 
 **Always in the top right corner:** a mute button and a settings button. Settings has the name and three volumes: everything, music and sounds. Name, volumes and mute are saved in `localStorage`. A name change updates the sign for both players.
 
-**Sound permission:** browsers don't really have one, they only need a tap before audio can start. So "sound on" means it starts on the first tap. Pressing the sound icon before accepting asks the question again.
+**Sound permission:** browsers don't really have one, they only need a tap before audio can start, so sound starts on the first tap.
 
 ## Design calls
 

@@ -7,12 +7,11 @@ export const NAME_LENGTH = 16;
 
 export type Settings = {
     name: string;
-    /** Null until the player answered the sound question. */
-    mute: boolean | null;
+    mute: boolean;
     volumes: Volumes;
 };
 
-export const DEFAULTS: Settings = { name: "", mute: null, volumes: { everything: 1, music: .6, sounds: 1 } };
+export const DEFAULTS: Settings = { name: "", mute: false, volumes: { everything: 1, music: .6, sounds: 1 } };
 
 const volume = (value: unknown, fallback: number) =>
     typeof value === "number" && value >= 0 && value <= 1 ? value : fallback;
@@ -31,7 +30,7 @@ export function parseSettings(saved: string | null): Settings {
     const { everything, music, sounds } = DEFAULTS.volumes;
     return {
         name: typeof raw?.name === "string" ? cleanName(raw.name) : "",
-        mute: typeof raw?.mute === "boolean" ? raw.mute : null,
+        mute: raw?.mute === true,
         volumes: {
             everything: volume(raw?.volumes?.everything, everything),
             music: volume(raw?.volumes?.music, music),

@@ -11,8 +11,8 @@
       "challengedAnon": "Du är utmanad på duell!",
       "wanted": "EFTERLYST",
       "yourName": "Ditt namn",
-      "withSound": "Med ljud",
-      "noSound": "Utan ljud"
+      "accept": "Anta duellen",
+      "challenge": "Utmana en vän"
     },
     "corner": {
       "sound": "Ljud",
@@ -20,10 +20,7 @@
       "name": "Namn",
       "everything": "Allt",
       "music": "Musik",
-      "sounds": "Ljudeffekter",
-      "question": "Ljud?",
-      "on": "Ljud på",
-      "off": "Inget ljud"
+      "sounds": "Ljudeffekter"
     },
     "invite": {
       "header": "Utmana en vän",

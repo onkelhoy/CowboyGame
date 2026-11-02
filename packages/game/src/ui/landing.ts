@@ -13,14 +13,14 @@ type Field = HTMLElement & { value: string };
 const escape = (text: string) => text.replace(/[&<>"]/g, char => `&#${char.charCodeAt(0)};`);
 
 /**
- * The wooden sign that opens the game: a name on the WANTED poster, and sound on or off. Both answers
- * are one tap, and that tap is what lets audio start. Resolves once it's been answered.
+ * The wooden sign that opens the game: a name on the WANTED poster and one button. That tap is what
+ * lets audio start. Resolves once it's been pressed.
  */
 export async function showLanding(hold: Hold, sound: Sound, invite: Invite | null) {
-    const { name, mute } = settings();
+    const { name } = settings();
 
     // a friend who's been here before goes straight to the duel, the first tap unlocks their sound
-    if (invite && name && mute !== null) return;
+    if (invite && name) return;
 
     const headline = invite?.by ? t("landing.challenged", { name: escape(invite.by) }) : invite ? t("landing.challengedAnon") : t("landing.title");
 
@@ -36,8 +36,7 @@ export async function showLanding(hold: Hold, sound: Sound, invite: Invite | nul
                     : `<pap-input id="your-name" placeholder="${t("landing.yourName")}" maxlength="${NAME_LENGTH}" aria-label="${t("landing.yourName")}"></pap-input>`}
             </div>
             <div class="ride">
-                <pap-button id="with-sound" variant="${mute === true ? "outline" : "filled"}" color="primary">${t("landing.withSound")}</pap-button>
-                <pap-button id="no-sound" variant="${mute === true ? "filled" : "outline"}" color="primary">${t("landing.noSound")}</pap-button>
+                <pap-button id="enter" color="primary">${t(invite ? "landing.accept" : "landing.challenge")}</pap-button>
             </div>
         </form>
     `;
@@ -52,7 +51,7 @@ export async function showLanding(hold: Hold, sound: Sound, invite: Invite | nul
     const field = landing.querySelector<Field>("#your-name");
 
     await new Promise<void>(resolve => {
-        const answer = (muted: boolean) => {
+        const answer = () => {
             const chosen = field ? cleanName(field.value ?? "") : name;
             if (!chosen)
             {
@@ -63,16 +62,15 @@ export async function showLanding(hold: Hold, sound: Sound, invite: Invite | nul
                 return;
             }
 
-            updateSettings({ name: chosen, mute: muted });
+            updateSettings({ name: chosen });
             sound.unlock();
             resolve();
         };
 
-        landing.querySelector("#with-sound")!.addEventListener("click", () => answer(false));
-        landing.querySelector("#no-sound")!.addEventListener("click", () => answer(true));
+        landing.querySelector("#enter")!.addEventListener("click", answer);
         sign.addEventListener("submit", event => event.preventDefault());
         sign.addEventListener("keydown", event => {
-            if (event.key === "Enter") answer(mute === true);
+            if (event.key === "Enter") answer();
         });
     });
 

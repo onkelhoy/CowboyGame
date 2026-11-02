@@ -11,8 +11,8 @@
       "challengedAnon": "You're challenged to a duel!",
       "wanted": "WANTED",
       "yourName": "Your name",
-      "withSound": "With sound",
-      "noSound": "No sound"
+      "accept": "Accept the duel",
+      "challenge": "Challenge a friend"
     },
     "corner": {
       "sound": "Sound",
@@ -20,10 +20,7 @@
       "name": "Name",
       "everything": "Everything",
       "music": "Music",
-      "sounds": "Sounds",
-      "question": "Sound?",
-      "on": "Sound on",
-      "off": "No sound"
+      "sounds": "Sounds"
     },
     "invite": {
       "header": "Challenge a friend",

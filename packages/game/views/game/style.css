@@ -207,15 +207,11 @@ pap-dialog input[type="range"] {
     --primary: #54301a;
     --on-primary: #fbe6bd;
     width: 100%;
-    font-family: inherit;
-    border-radius: 6px;
-    background: #fbe6bd;
-    color: #3a2010;
-}
-
-.sign .ride pap-button[variant="filled"] {
+    border-radius: 2px;
     background: #54301a;
     color: #fbe6bd;
+    font-family: inherit;
+    box-shadow: 0 4px 0 #20130c;
 }
 
 #bars i {
