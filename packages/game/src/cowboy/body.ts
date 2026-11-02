@@ -1,5 +1,6 @@
 import { Armature, type Bone, type IK } from "@papit/armature";
 
+import { currentPalette, tinted } from "../scene/palette";
 import { GUN_LEVEL } from "../tuning";
 import type { Parts } from "./outfit";
 import { Ragdoll, type RagdollBounds, type RagdollPoint } from "./ragdoll";
@@ -225,12 +226,16 @@ export class Body {
         const unit = image.width / 140.23;
         ctx.scale(unit, unit);
 
-        ctx.fillStyle = "#e0a262";
+        // the skin as the head picture has it, so the patch is the same in the night's tint
+        const { tint } = currentPalette();
+        const shade = (colour: string) => tint ? tinted(colour, tint) : colour;
+
+        ctx.fillStyle = shade("#e0a262");
         ctx.fillRect(77, 110, 9, 16);
-        ctx.fillStyle = "#c4834a";
+        ctx.fillStyle = shade("#c4834a");
         ctx.fillRect(95, 110, 9, 16);
 
-        ctx.strokeStyle = "#2b1a14";
+        ctx.strokeStyle = shade("#2b1a14");
         ctx.lineWidth = 3;
         ctx.lineCap = "round";
         ctx.beginPath();
