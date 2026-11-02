@@ -1,12 +1,12 @@
 # Cowboy: plan
 
-Status: **confirmed by the owner, 2026-11-02.** Nothing is built yet.
+Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed from npm.
 
 ## Where we are
 
-- **Next:** task 0, resync after the owner's papit release. Then tasks 1 to 10, which the owner asked for as one batch, so run them in a row, committing after each, without stopping for "do next task".
+- **Next:** task 1. Tasks 1 to 10 are one batch the owner asked for, so run them in a row, committing after each, without stopping for "do next task".
+- **Branch:** work happens on `feature/first-version`, `main` stays at the plan.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
-- **Why it stopped:** the owner paused task 1 to publish papit. No game code exists.
 
 ## The game now
 
@@ -89,7 +89,7 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 
 ## Blockers, checked 2026-11-02
 
-1. **Papit release.** The owner is publishing it now, and task 0 picks it up. On 2026-11-02 npm had `game-engine` 0.1.0 and `vector` and `matrix` 0.0.1, with `armature`, `quaternion` and `line-intersection` missing. The repo had 0.2.0, 0.0.2, 0.0.2, and 0.0.1 for those three.
+1. **Papit release.** Done. npm matches the repo: `game-engine` 0.2.0, `vector` and `matrix` 0.0.2, `armature`, `quaternion` and `line-intersection` 0.0.1.
 2. `webrtc` 0.0.7, `signal-server` 0.0.6 and the UI packages match the repo. Nothing to do.
 3. `github.com/onkelhoy/cowboy` wasn't reachable from here. The owner needs to create it before task 30.
 4. Suno songs, logo and manifest logo: the owner adds them to the root `asset/` folder later. The plan runs without them until task 26, and a missing file means silence, not a crash.
@@ -165,11 +165,11 @@ The server and static build collect `asset/` from the served package and its dep
 
 ## Technical notes
 
-Found while reading the code on 2026-11-02. Check them against the new release in task 0.
+Found while reading the code on 2026-11-02, and checked against the release in task 0.
 
 **Game package**
 - Public page in `views/game/`, which `@papit/static` picks by default when `views/github/` is missing. Delete the template's `experiment` view.
-- The game template's `views/` and `tests/` use `Engine` and `@papit/game-input-events`, which don't exist any more, unless the release fixed them. Use `GameEngine` and replace those files.
+- The game template's `views/` and `tests/` use `Engine` and `@papit/game-input-events`, which don't exist any more. `@papit/create` 0.0.20 still has this. Use `GameEngine` and replace those files.
 - The template's `tests/playwright.config.ts` runs `npm run server`, which the root doesn't have. Point it at `npx @papit/server --port=3500`. Keep Chromium, and run pure logic tests in a project of their own with no browser. Skip the snapshot test, the owner doesn't want those.
 - Move game dependencies from the template's `devDependencies` to `dependencies`, and set `private: true` and `papit.publish: false`.
 
@@ -182,8 +182,9 @@ Found while reading the code on 2026-11-02. Check them against the new release i
 - `Camera` position is the centre of the view. Without a camera, units are device pixels. Fit the world with `camera.position = (600, 300)` and `camera.zoom = fit`. The pole shot and the zoom out are the same camera.
 - `new Camera()` on a 2D layer multiplies the view into each object's matrix, so `ctx` is already placed in `render`.
 - `camera.shake` already skips for reduced motion.
-- `InputEvents.on("mouse-down")` falls through its `switch` and also registers on the mouse, touch and keyboard targets. A plain `new InputEvents` requests pointer lock, `engine.input` doesn't.
-- Before task 4, read `input/touches/handler.ts` and `input/keyboard/handler.ts`. Check that `touchcancel` and a release outside the canvas can't leave the hold stuck, and find the key name for space.
+- `InputEvents.on("mouse-down")` falls through its `switch` and also registers on the mouse, touch and keyboard targets. Harmless, those never fire that name. A plain `new InputEvents` requests pointer lock, `engine.input` doesn't.
+- `engine.input` can't carry the hold, so task 4 uses native pointer events with `setPointerCapture`, plus `blur`, the way the engine's own camera controllers do. `Mouse` listens for `mouseup` on the canvas only, so a release outside it sticks. `Touches` is fine with `touchcancel`, but a tap also gives emulated mouse events, a second press.
+- Space is the key name `" "`. `Keyboard.handlekeyup` throws when a key was pressed before the page had focus, because `keys[name]` is undefined there, and `blur` doesn't release keys. Task 4 listens on `window` itself.
 
 **Cowboy and armature**
 - Start from papit's `packages/algorithms/math/armature/views/cowboy/main.js`. Its `limb`, `joint` and `foot` draw order is worth keeping. `Rig` comes from `views/shared/rig.js`, it isn't exported by the package.
@@ -202,3 +203,6 @@ Found while reading the code on 2026-11-02. Check them against the new release i
 - `@papit/webrtc` has no round trip or clock helper.
 - The `game` package template in `@papit/create` is out of date, see the technical notes.
 - No slider or range component. Volumes use a native range input with theme tokens for now.
+- `Mouse` only hears `mouseup` on the canvas, so a release outside it leaves `pressing` stuck.
+- `Keyboard.handlekeyup` throws on a key whose `keydown` it never saw, and `blur` leaves keys pressed.
+- `line-intersection` isn't in `.claude/CATALOG.md`.
