@@ -56,8 +56,8 @@ No new tests are being written for now, by choice. The ones in `packages/game/te
 
 ## How it works
 
-- **One shared network.** Every player joins one chord network on the signal server, a lobby nobody sees: the oldest one wins, and two created at once merge. A duel is a room inside it, opened with no server call, so the signal server only ever sees one network, and the game goes on if it sleeps.
-- **The link** carries the room's id, the host's peer id and the host's name (`?game=…&host=…&by=…`). A host whose id changed before a friend came gets a fresh link.
+- **One network per duel.** As in papchat, the host makes a small private mesh network on the signal server and the guest joins it straight through the link. Once the two are linked only the host keeps a socket open, so a game costs the server one connection. (A shared chord lobby was tried first and dropped: it was more machinery than a link between friends needs, and joins through it failed.)
+- **The link** carries the network's id and the host's name (`?game=…&by=…`). The network keeps its id if the host's socket drops and comes back, so the link keeps working.
 - **On the wire:** pose at 30 Hz over an unreliable data channel; shots, hits and round state over the reliable one. The other cowboy is moved forward by half the round trip. A shared clock, found with five pings, starts everyone on the same GO.
 - **The player who is shot decides the hit,** since their own pose is exact on their screen. A bullet already flying still counts, so two hits close together make a draw.
 - Everything tuned by playing is in `packages/game/src/tuning.ts`.

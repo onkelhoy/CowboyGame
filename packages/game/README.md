@@ -17,7 +17,7 @@ npm run signal       # from the root, a local signal server for two players
 | `src/cowboy/` | The body (armature), outfit colours and the Verlet ragdoll |
 | `src/duel/` | Bullets, hits, the practice bot, and the kill: slow motion, blood and the win sign |
 | `src/scene/` | The drawn map, the pole, and the camera that zooms between pole and map |
-| `src/net/` | The lobby (shared chord network), and the match (room, clock, pose channel) |
+| `src/net/` | The connector (one small mesh network per duel), and the match (room, clock, pose channel) |
 | `src/online.ts` | The online flow: host or join, ready, countdown, rounds, leaving |
 | `src/ui/` | The landing sign, corner buttons, settings and the overlay (bars, countdown, dialogs) |
 | `src/sound.ts` | Web Audio: sound effects, songs, volumes, the slow motion whoosh |

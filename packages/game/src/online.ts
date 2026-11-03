@@ -9,7 +9,8 @@ import type { Kill } from "./duel/kill";
 import type { Hud } from "./hud";
 import type { Hold } from "./input";
 import { inviteLink, type Invite } from "./link";
-import { Lobby, type Room } from "./net/lobby";
+import { Connector } from "./net/room";
+import type { Room } from "./net/room";
 import { Match } from "./net/match";
 import type { Pole } from "./scene/pole";
 import type { Stage } from "./scene/fit";
@@ -42,8 +43,8 @@ const mirrorX = (x: number) => WORLD.width - x;
 const mirrorAngle = (angle: number) => Math.PI - angle;
 
 /**
- * Milliseconds to keep trying a link. A fresh player can sit in a lobby of their own for seconds before
- * the two merge, and someone coming back from a refresh can find their old self still in the room.
+ * Milliseconds to keep trying a link. A sleeping server takes a while to wake, and someone coming back
+ * from a refresh can find their old self still in the room.
  */
 const JOIN_FOR = 18_000;
 const JOIN_GAP = 3000;
@@ -54,12 +55,12 @@ function failure(error: unknown): Failure {
 }
 
 /**
- * Two players, one duel. It runs the flow around the fight: the lobby, the room, the pole, ready, the
+ * Two players, one duel. It runs the flow around the fight: the game network, the pole, ready, the
  * zoom out and countdown, then the rounds until someone has won enough of them.
  */
 export class Online {
     private ui;
-    private lobby = new Lobby({ name: settings().name });
+    private connector = new Connector({ name: settings().name }, () => !this.match?.peer);
     private match: Match | null = null;
     private phase: Phase = "connecting";
     private ready: [boolean, boolean] = [false, false];
@@ -71,7 +72,7 @@ export class Online {
     private pending: RoundMessage | null = null;
     private timers: ReturnType<typeof setTimeout>[] = [];
     private posing: ReturnType<typeof setInterval> | undefined;
-    private hosting: { id: string | null } | null = null;
+    private hosting: object | null = null;
     private tries = 0;
     private asHost = false;
     private shown = "";
@@ -93,7 +94,6 @@ export class Online {
         // the sign carries the names, and a new name reaches the other player too
         effect(() => {
             const { name } = settings();
-            this.lobby.setName(name);
             this.match?.room.setProfile({ name });
             this.show();
         });
@@ -109,10 +109,9 @@ export class Online {
     /** The host's way in: a link to send. */
     async host() {
         this.asHost = true;
-        effect(() => this.status(this.lobby.status()));
+        effect(() => this.status(this.connector.status()));
         this.ui.invite.text(t("status.connecting"));
         this.ui.invite.open();
-        await this.lobby.start();
         await this.open();
         this.watching();
     }
@@ -140,17 +139,16 @@ export class Online {
     }
 
     /** The guest's way in: the link they were sent. */
-    async join({ game, host }: Invite) {
-        effect(() => this.status(this.lobby.status()));
+    async join({ game }: Invite) {
+        effect(() => this.status(this.connector.status()));
         this.ui.note(t("status.joining"));
-        await this.lobby.start();
 
         const until = performance.now() + JOIN_FOR;
         for (;;)
         {
             try
             {
-                const room = await this.lobby.joinRoom(game, host);
+                const room = await this.connector.join(game);
                 this.attach(room, false);
                 room.setProfile({ name: settings().name });
                 this.ui.note("");
@@ -170,21 +168,21 @@ export class Online {
 
     private async open() {
         const { name } = settings();
-        const room = await this.lobby.room({
-            name: "duel",
-            // a third player is turned away, but someone who only refreshed is still counted for a while
-            accept: () => !this.match?.peer,
-            profile: { name },
+        // a third player is turned away (the connector's accept), but someone who only refreshed is
+        // still counted for a while
+        const room = await this.connector.host({
+            name: `cowboy:duel:${crypto.randomUUID()}`,
             media: { channels: { pose: { ordered: false, maxRetransmits: 0 } } },
         });
-        this.hosting = { id: this.lobby.id };
+        room.setProfile({ name });
+        this.hosting = {};
         this.attach(room, true);
         this.link(room);
     }
 
     private link(room: Room) {
         const { name } = settings();
-        const link = inviteLink(location.href, { game: room.network!.id, host: room.host!, by: name });
+        const link = inviteLink(location.href, { game: room.network!.id, by: name });
         if (link === this.shown) return;
 
         this.shown = link;
@@ -193,21 +191,11 @@ export class Online {
         this.show();
     }
 
-    /** An old link only works through the host's current id, so a host who reconnected needs a new one. */
+    /** The network keeps its id when the host's socket comes back, so the link only needs showing again. */
     private watch() {
         const { match, hosting } = this;
         if (!match || !hosting || match.peer) return;
-
-        const id = this.lobby.id;
-        if (id && id !== hosting.id)
-        {
-            console.warn("host id changed, opening the game again");
-            hosting.id = id;
-            match.close();
-            this.match = null;
-            void this.open();
-        }
-        else if (match.room.host) this.link(match.room);
+        if (match.room.network) this.link(match.room);
     }
 
     private attach(room: Room, host: boolean) {

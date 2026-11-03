@@ -1,4 +1,4 @@
-import type { Room } from "./lobby";
+import type { Room } from "./room";
 
 const PINGS = 5;
 const PING_GAP = 150;
