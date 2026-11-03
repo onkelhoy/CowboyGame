@@ -7,6 +7,7 @@ import { effect } from "@papit/signals";
 import type { Hold } from "../input";
 import { cleanName, NAME_LENGTH, settings, updateSettings } from "../settings";
 import type { Sound, Volumes } from "../sound";
+import { canFullscreen, toggleFullscreen } from "../fullscreen";
 import { t } from "../text";
 import { registerIcons } from "./icons";
 
@@ -20,6 +21,7 @@ const VOLUMES: { name: keyof Volumes; label: () => string }[] = [
 ];
 
 const cornerHtml = () => `
+    <pap-button id="fullscreen" size="icon" variant="clear" aria-label="${t("corner.fullscreen")}"><pap-icon name="fullscreen"></pap-icon></pap-button>
     <pap-button id="mute" size="icon" variant="clear" aria-label="${t("corner.sound")}"><pap-icon name="sound-on"></pap-icon></pap-button>
     <pap-button id="gear" size="icon" variant="clear" aria-label="${t("corner.settings")}"><pap-icon name="settings"></pap-icon></pap-button>
 `;
@@ -55,6 +57,13 @@ export function mountCorner(sound: Sound, hold: Hold) {
         for (const { name } of VOLUMES) sound.setVolume(name, volumes[name]);
         icon.setAttribute("name", mute ? "sound-off" : "sound-on");
     });
+
+    const full = find("#fullscreen");
+    if (canFullscreen()) full.addEventListener("click", event => {
+        void toggleFullscreen();
+        letGo(event);
+    });
+    else full.remove();
 
     find("#mute").addEventListener("click", event => {
         updateSettings({ mute: !settings().mute });

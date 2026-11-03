@@ -16,6 +16,7 @@
     },
     "corner": {
       "sound": "Ljud",
+      "fullscreen": "Helskärm",
       "settings": "Inställningar",
       "name": "Namn",
       "everything": "Allt",
@@ -27,7 +28,7 @@
       "send": "Skicka länken till din vän, eller låt dem skanna koden.",
       "connecting": "Ansluter...",
       "left": "Din vän lämnade. Skicka länken för en ny duell.",
-      "ready": "Jag är redo",
+      "ready": "Spela",
       "waiting": "Väntar på {name}...",
       "friend": "din vän",
       "link": "Inbjudan",

@@ -4,6 +4,7 @@ import "@cowboy/qr-code";
 import "@cowboy/share-link";
 
 import { blobOf } from "../assets";
+import { enterFullscreen } from "../fullscreen";
 import type { Hold } from "../input";
 import { t } from "../text";
 
@@ -83,7 +84,11 @@ export function mountOverlay(hold: Hold) {
     }
 
     let onReady = () => { };
-    ready.addEventListener("click", () => onReady());
+    // Play goes full screen too, and it has to happen inside the tap
+    ready.addEventListener("click", () => {
+        void enterFullscreen();
+        onReady();
+    });
     let onInvite = () => { };
     again.addEventListener("click", () => onInvite());
 

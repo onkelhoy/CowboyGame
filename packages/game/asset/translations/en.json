@@ -16,6 +16,7 @@
     },
     "corner": {
       "sound": "Sound",
+      "fullscreen": "Fullscreen",
       "settings": "Settings",
       "name": "Name",
       "everything": "Everything",
@@ -27,7 +28,7 @@
       "send": "Send this link to your friend, or let them scan the code.",
       "connecting": "Connecting...",
       "left": "Your friend left. Send this link for another duel.",
-      "ready": "I'm ready",
+      "ready": "Play",
       "waiting": "Waiting for {name}...",
       "friend": "your friend",
       "link": "Invite link",
