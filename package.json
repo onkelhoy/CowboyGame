@@ -10,7 +10,7 @@
         "build": "npx @papit/build",
         "test": "node bin/test.mjs",
         "create": "npm create @papit -- --package",
-        "start": "npm start --workspace=@cowboy/game",
+        "start": "npx @papit/server --info --live",
         "signal": "npx @papit/signal-server --port 3001",
         "version:reset": "npx @papit/version --reset",
         "version:sync": "npx @papit/version --sync",

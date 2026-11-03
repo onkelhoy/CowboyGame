@@ -99,11 +99,7 @@ export class Online {
         });
 
         document.addEventListener("visibilitychange", this.visibility);
-        window.addEventListener("pagehide", event => {
-            this.match?.send("bye");
-            // a tab going into the back/forward cache comes back, only a real unload leaves the lobby
-            if (!event.persisted) this.lobby.close();
-        });
+        window.addEventListener("pagehide", () => this.match?.send("bye"));
         this.pause("stage", true);
         this.parts.sound.song("menu");
         this.parts.stage.go(0, 0);
