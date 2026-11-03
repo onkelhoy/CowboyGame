@@ -14,6 +14,8 @@ export const SERVER_GAP = 1000;
 export const CALL_TIMEOUT = 7000;
 export const RACE_GUARD = 2000;
 export const RESCAN = 20_000;
+/** Milliseconds between the "here" every player sends into the lobby. */
+export const HEARTBEAT = 30_000;
 export const RETRY_MIN = 3000;
 export const RETRY_MAX = 30_000;
 

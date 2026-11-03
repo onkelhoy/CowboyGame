@@ -1,7 +1,7 @@
 import { signal } from "@papit/signals";
 import { Client } from "@papit/webrtc";
 
-import { APP, CALL_TIMEOUT, LOBBY_NAME, RACE_GUARD, RESCAN, RETRY_MAX, RETRY_MIN, RTC, SERVER_GAP, signalUrl } from "./config";
+import { APP, CALL_TIMEOUT, HEARTBEAT, LOBBY_NAME, RACE_GUARD, RESCAN, RETRY_MAX, RETRY_MIN, RTC, SERVER_GAP, signalUrl } from "./config";
 
 type Info = Awaited<ReturnType<Client["list"]>>[number];
 export type Room = Client;
@@ -28,6 +28,7 @@ export class Lobby {
     private closed = false;
     private guarding = false;
     private timer: ReturnType<typeof setInterval> | undefined;
+    private beat: ReturnType<typeof setInterval> | undefined;
     private known = new Set<string>();
 
     constructor(private profile: { name: string }) {
@@ -67,6 +68,8 @@ export class Lobby {
                 this.setStatus("ready");
                 void this.guard(client);
                 this.timer = setInterval(() => void this.guard(client), RESCAN);
+                // a tiny message to everyone: it keeps links warm, so a dead neighbour is noticed and dropped
+                this.beat = setInterval(() => { if (client.network && !document.hidden) client.broadcast("here"); }, HEARTBEAT);
                 return;
             }
             catch (error)
@@ -83,6 +86,7 @@ export class Lobby {
     close() {
         this.closed = true;
         clearInterval(this.timer);
+        clearInterval(this.beat);
         this.client?.close();
     }
 
@@ -124,7 +128,9 @@ export class Lobby {
         await client.ready;
 
         // a lobby that doesn't answer is most likely empty, a live one is merged with later by the guard
-        const [lobby] = await this.lobbies(client);
+        const found = await this.lobbies(client);
+        console.info("lobby: found", JSON.stringify(found.map(i => ({ id: i.id.slice(0, 8), created: i.meta?.created, size: (i as any).size }))));
+        const [lobby] = found;
         if (lobby)
         {
             try
@@ -137,7 +143,8 @@ export class Lobby {
             }
         }
 
-        if (client.network) return;
+        if (client.network) { console.info("lobby: joined", client.network.id.slice(0, 8), "members", client.members.length); return; }
+        console.info("lobby: creating my own");
         await this.call(() => client.create({
             name: LOBBY_NAME,
             meta: { app: APP, kind: "lobby", v: 1, created: Date.now() },
