@@ -28,6 +28,7 @@ export class Lobby {
     private closed = false;
     private guarding = false;
     private timer: ReturnType<typeof setInterval> | undefined;
+    private known = new Set<string>();
 
     constructor(private profile: { name: string }) {
         [this.status, this.setStatus] = signal<LobbyStatus>("connecting");
@@ -50,6 +51,12 @@ export class Lobby {
             acceptMerge: () => true,
         });
         client.addEventListener("status", this.sync);
+        client.addEventListener("members", this.greet);
+        // back on a socket, or the host now: the server may hold another lobby by now
+        client.addEventListener("status", () => {
+            if (client.status === "connected" && client.network) void this.guard(client);
+        });
+        client.addEventListener("host", () => void this.guard(client));
 
         let delay = RETRY_MIN;
         while (!this.closed)
@@ -97,6 +104,19 @@ export class Lobby {
         const client = this.client;
         if (!client || client.network) return;
         this.setStatus(client.status === "waking" ? "waking" : client.status === "closed" ? "failed" : "connecting");
+    };
+
+    /**
+     * A host back on a new socket keeps its peer id, but a newcomer only gets through to it once it has
+     * heard from it, so their invite link would never work. Saying hello fixes that, as in papchat.
+     */
+    private greet = () => {
+        const client = this.client;
+        if (!client?.network) return;
+        const fresh = client.members.filter(member => member !== client.id && !this.known.has(member));
+        this.known = new Set(client.members);
+        if (client.host !== client.id || client.serverId === client.network.id) return;
+        for (const peer of fresh) client.send(peer, "here");
     };
 
     /** Joins the most canonical lobby we can, or makes one. */
