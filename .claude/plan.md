@@ -5,6 +5,7 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 ## Where we are
 
 - **Next:** the network move to papit 0.1, tasks 32 to 38 under [Network 0.1](#network-01). Confirmed, waiting for papit 0.1.0 on npm. Task 12, the feel pass, still needs the owner, and task 31, the live test, now comes after task 38.
+- **Blocked, 2026-11-05:** 0.1.0 isn't on npm yet (webrtc 0.0.7, signal-server 0.0.6, peer-message 0.0.4), so task 32 can't start. Reading papit's branch found a gap that breaks split healing over a real socket, see the first entry under [Papit gaps to report](#papit-gaps-to-report). Tasks 33 to 36 depend on it.
 - **Before 0.1:** Everything else is built, except task 28, which is skipped because there are no tests for now. The site is on GitHub Pages at <https://onkelhoy.github.io/CowboyGame/>, built on every push to `main`.
 - **Version page:** `/CowboyGame/version` lists the releases (git tags `v0.0.N`, made by the pages workflow after a deploy) and checks live whether this device reaches the signal server and STUN. `?signal=` is honoured. The pole button is now "Play": it readies and goes fullscreen (locks landscape where allowed), and the corner has a fullscreen toggle.
 - **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. The files in `packages/game/tests` are from before that call and aren't kept up. This overrides the brief and any task below that mentions tests, including task 28.
@@ -220,6 +221,7 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 
 ## Papit gaps to report
 
+- **0.1, `refactor/topology-engine` (read, not run):** a peer that isn't an anchor has no socket after joining, but split recovery (`Network.recover()`, `network.ts` around line 290) calls `this.anchor()` straight away. `SocketBootstrap.request` then rejects with "no socket", and the failure only goes to `debug`. The `Client` opens the socket for `anchor-request` (`client.ts` line 200) but not for this. So when the only anchor's tab dies, nobody can re-anchor, and the rest of the lobby is never found or merged again. The memory tests can't see it, because a `MemoryBootstrap` is always connected. An app calling `network.anchor()` hits the same wall.
 - `@papit/webrtc` calls `crypto.randomUUID`, which is missing on a page that isn't secure, so plain `http://` throws "not a function" instead of a clear message. A phone on a LAN address hits this too. `views/game/index.html` redirects github.io to https.
 - The server finds assets once at start, so a file added while it runs answers 500 until a restart.
 - No QR or share link component.
