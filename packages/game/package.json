@@ -66,7 +66,7 @@
     "@papit/translator": "^0.1.1",
     "@papit/vector": "*",
     "@papit/web-component": "^0.0.14",
-    "@papit/webrtc": "^0.0.7",
+    "@papit/webrtc": "^0.1.0",
     "@cowboy/qr-code": "*",
     "@cowboy/share-link": "*"
   },

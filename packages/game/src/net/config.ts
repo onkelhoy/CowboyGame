@@ -5,21 +5,30 @@ export const DEFAULT_SIGNAL = "wss://render-webrtc-signal-server.onrender.com";
 /** STUN only, so a strict mobile or company network may not connect without TURN. */
 export const RTC: RTCConfiguration = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
-/** The signal server drops messages that come less than 200 ms apart, so ours are spaced. */
-export const SERVER_GAP = 1000;
-/**
- * Milliseconds before a server call gives up. A lobby whose last player just left stays listed for a
- * while, and waiting out the default 15 s on it is the long wait for a link.
- */
-export const CALL_TIMEOUT = 7000;
-export const RACE_GUARD = 2000;
+/** One player keeps a socket so newcomers can find the lobby, everyone else closes theirs after joining. */
+export const ANCHORS = 1;
+/** Milliseconds between the anchor's beacons. A part that misses three re-anchors and merges back. */
+export const BEACON = 10_000;
+/** Milliseconds before a WebRTC handshake gives up, short so a join that can't connect fails fast. */
+export const HANDSHAKE_TIMEOUT = 6000;
+/** Milliseconds between an anchor's looks at `/networks` for a lobby to merge into. */
 export const RESCAN = 20_000;
-/** Milliseconds between the "here" every player sends into the lobby. */
-export const HEARTBEAT = 30_000;
+/** Milliseconds between a waiting host's checks that their lobby is still listed. */
+export const HOST_CHECK = 5000;
 export const RETRY_MIN = 3000;
 export const RETRY_MAX = 30_000;
 
 /** `?signal=ws://localhost:3001` points a game at a local `npm run signal`. Invite links keep it. */
 export function signalUrl(search: string = location.search) {
     return new URLSearchParams(search).get("signal") || DEFAULT_SIGNAL;
+}
+
+/** The signal server's HTTP side, for `/health` and `/networks`. */
+export function httpUrl(signal: string = signalUrl()) {
+    const url = new URL(signal);
+    url.protocol = url.protocol === "wss:" ? "https:" : "http:";
+    url.pathname = url.pathname.replace(/\/$/, "");
+    url.search = "";
+    url.hash = "";
+    return url.toString().replace(/\/$/, "");
 }

@@ -8,9 +8,11 @@ import type { Hit } from "./duel/hits";
 import type { Kill } from "./duel/kill";
 import type { Hud } from "./hud";
 import type { Hold } from "./input";
-import { inviteLink, type Invite } from "./link";
-import { Lobby, type Room } from "./net/lobby";
+import { inviteLink, withoutInvite, type Invite } from "./link";
+import { ANCHORS, APP, BEACON, HANDSHAKE_TIMEOUT, HOST_CHECK, LOBBY_NAME, RESCAN, RTC, httpUrl, signalUrl } from "./net/config";
+import { Lobby } from "./net/lobby";
 import { Match } from "./net/match";
+import type { Network } from "@papit/webrtc";
 import type { Pole } from "./scene/pole";
 import type { Stage } from "./scene/fit";
 import { settings } from "./settings";
@@ -41,25 +43,28 @@ const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms
 const mirrorX = (x: number) => WORLD.width - x;
 const mirrorAngle = (angle: number) => Math.PI - angle;
 
-/**
- * Milliseconds to keep trying a link. A fresh player can sit in a lobby of their own for seconds before
- * the two merge, and someone coming back from a refresh can find their old self still in the room.
- */
-const JOIN_FOR = 18_000;
-const JOIN_GAP = 3000;
-
-/** What went wrong with a link, from the words `joinRoom` gives. */
+/** What went wrong with a link: the entry said no, or nobody in the invite answered. */
 function failure(error: unknown): Failure {
-    return /not accepted|rejected/i.test(String((error as Error)?.message ?? error)) ? "full" : "gone";
+    return /^rejected$/i.test(String((error as Error)?.message ?? error)) ? "full" : "gone";
 }
 
 /**
- * Two players, one duel. It runs the flow around the fight: the lobby, the room, the pole, ready, the
+ * Two players, one duel. It runs the flow around the fight: the lobby, the duel, the pole, ready, the
  * zoom out and countdown, then the rounds until someone has won enough of them.
  */
 export class Online {
     private ui;
-    private lobby = new Lobby({ name: settings().name });
+    private lobby = new Lobby({
+        url: signalUrl(),
+        http: httpUrl(),
+        name: LOBBY_NAME,
+        meta: { app: APP, kind: "lobby", v: 2 },
+        rtc: RTC,
+        anchors: ANCHORS,
+        beacon: BEACON,
+        handshakeTimeout: HANDSHAKE_TIMEOUT,
+        rescan: RESCAN,
+    });
     private match: Match | null = null;
     private phase: Phase = "connecting";
     private ready: [boolean, boolean] = [false, false];
@@ -71,7 +76,7 @@ export class Online {
     private pending: RoundMessage | null = null;
     private timers: ReturnType<typeof setTimeout>[] = [];
     private posing: ReturnType<typeof setInterval> | undefined;
-    private hosting: { id: string | null } | null = null;
+    private hosting = false;
     private tries = 0;
     private asHost = false;
     private shown = "";
@@ -92,9 +97,8 @@ export class Online {
 
         // the sign carries the names, and a new name reaches the other player too
         effect(() => {
-            const { name } = settings();
-            this.lobby.setName(name);
-            this.match?.room.setProfile({ name });
+            settings();
+            this.match?.sendName();
             this.show();
         });
 
@@ -118,7 +122,7 @@ export class Online {
     }
 
     private watching() {
-        this.watcher ??= setInterval(() => this.watch(), 3000);
+        this.watcher ??= setInterval(() => this.watch(), HOST_CHECK);
     }
 
     /** Nobody's left to play with, so this player is the one with a link to send now. */
@@ -129,7 +133,7 @@ export class Online {
 
         this.asHost = true;
         this.shown = "";
-        history.replaceState(null, "", this.fresh());
+        history.replaceState(null, "", withoutInvite(location.href));
         this.ui.note("");
         this.ui.invite.text(words);
         this.ui.invite.open();
@@ -139,52 +143,49 @@ export class Online {
         this.watching();
     }
 
-    /** The guest's way in: the link they were sent. */
-    async join({ game, host }: Invite) {
+    /** The guest's way in: the link they were sent. One try, each entry in the invite gets 5 s. */
+    async join({ lobby, invite }: Invite) {
         effect(() => this.status(this.lobby.status()));
         this.ui.note(t("status.joining"));
-        await this.lobby.start();
+        await this.lobby.start(lobby);
+        if (this.lobby.id !== lobby) console.info("joining from another lobby than the link's", lobby.slice(0, 8));
 
-        const until = performance.now() + JOIN_FOR;
-        for (;;)
+        try
         {
-            try
-            {
-                const room = await this.lobby.joinRoom(game, host);
-                this.attach(room, false);
-                room.setProfile({ name: settings().name });
-                this.ui.note("");
-                return;
-            }
-            catch (error)
-            {
-                console.warn("could not join", error);
-                const reason = failure(error);
-                if (performance.now() >= until) return reason === "full" ? this.full() : this.rehost(t("invite.ended"));
-                await wait(JOIN_GAP);
-            }
+            const duel = await this.lobby.join(invite, { profile: { name: settings().name } });
+            this.attach(duel, false);
+            this.ui.note("");
+        }
+        catch (error)
+        {
+            console.warn("could not join", error);
+            return failure(error) === "full" ? this.full() : this.rehost(t("invite.ended"));
         }
     }
 
-    // ------------------------------------------------------------------ rooms
+    // ------------------------------------------------------------------ the duel
 
     private async open() {
-        const { name } = settings();
-        const room = await this.lobby.room({
+        const duel = await this.lobby.create({
             name: "duel",
-            // a third player is turned away, but someone who only refreshed is still counted for a while
-            accept: () => !this.match?.peer,
-            profile: { name },
+            topology: "mesh",
             media: { channels: { pose: { ordered: false, maxRetransmits: 0 } } },
+        }, {
+            // a third player is turned away
+            accept: () => !this.match?.peer,
         });
-        this.hosting = { id: this.lobby.id };
-        this.attach(room, true);
-        this.link(room);
+        this.hosting = true;
+        this.attach(duel, true);
+        this.link(duel);
     }
 
-    private link(room: Room) {
-        const { name } = settings();
-        const link = inviteLink(location.href, { game: room.network!.id, host: room.host!, by: name });
+    /** The link names the lobby by id, and that changes when the lobby merges, so it's made again then. */
+    private link(duel: Network) {
+        const invite = duel.invite();
+        const lobby = this.lobby.id;
+        if (!invite || !lobby) return;
+
+        const link = inviteLink(location.href, { lobby, invite, by: settings().name });
         if (link === this.shown) return;
 
         this.shown = link;
@@ -193,32 +194,33 @@ export class Online {
         this.show();
     }
 
-    /** An old link only works through the host's current id, so a host who reconnected needs a new one. */
+    /** While a host waits: keep their lobby listed, keep the link current, and open the duel again if it closed. */
     private watch() {
         const { match, hosting } = this;
         if (!match || !hosting || match.peer) return;
 
-        const id = this.lobby.id;
-        if (id && id !== hosting.id)
+        if (match.duel.closed)
         {
-            console.warn("host id changed, opening the game again");
-            hosting.id = id;
-            match.close();
+            if (!this.lobby.network) return;
+            console.warn("the duel closed while waiting, opening it again");
             this.match = null;
             void this.open();
+            return;
         }
-        else if (match.room.host) this.link(match.room);
+
+        void this.lobby.keepListed();
+        this.link(match.duel);
     }
 
-    private attach(room: Room, host: boolean) {
-        const match = this.match = new Match(room, host);
+    private attach(duel: Network, host: boolean) {
+        const match = this.match = new Match(duel, host, () => settings().name);
+        match.onName(() => this.show());
 
         match.onJoin(() => this.met());
         match.onLeave(() => this.gone(host));
         match.onPose(({ s, d }) => {
             if (this.phase === "duel" && this.parts.right.alive) this.parts.right.receive(s, d, match.rtt / 2000);
         });
-        room.addEventListener("members", () => this.show());
 
         match.on("ready", ({ ready }) => {
             this.ready[1] = ready === true;
@@ -266,7 +268,7 @@ export class Online {
 
         if (host)
         {
-            // the room is still open and the old link works, a friend can come in again
+            // the duel is still open and the old link works, a friend can come in again
             this.ui.invite.text(t("invite.left"));
             this.ui.invite.open();
             return;
@@ -275,16 +277,10 @@ export class Online {
         void this.rehost(t("invite.left"));
     }
 
-    private fresh() {
-        const url = new URL(location.href);
-        for (const key of ["game", "host", "by"]) url.searchParams.delete(key);
-        return url.toString();
-    }
-
     private full() {
         this.ui.note("");
         this.ui.message(t("message.fullHeader"), t("message.fullText"), [
-            { label: t("message.startNew"), run: () => location.assign(this.fresh()) },
+            { label: t("message.startNew"), run: () => location.assign(withoutInvite(location.href)) },
         ]);
     }
 

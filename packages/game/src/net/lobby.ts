@@ -1,203 +1,207 @@
 import { signal } from "@papit/signals";
-import { Client } from "@papit/webrtc";
+import { Client, ParentBootstrap, type Network } from "@papit/webrtc";
 
-import { APP, CALL_TIMEOUT, HEARTBEAT, LOBBY_NAME, RACE_GUARD, RESCAN, RETRY_MAX, RETRY_MIN, RTC, SERVER_GAP, signalUrl } from "./config";
-
-type Info = Awaited<ReturnType<Client["list"]>>[number];
-export type Room = Client;
+/** A network as `GET /networks` and `network.invite()` give it. */
+export type Info = NonNullable<ReturnType<Network["invite"]>>;
 
 /** `waking` is a free server that's booting, `failed` is a try that didn't work and will be made again. */
 export type LobbyStatus = "connecting" | "waking" | "ready" | "failed";
 
-const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
-const created = (info: Info) => typeof info.meta?.created === "number" ? info.meta.created : Infinity;
-const topologyOf = (info: Info) => typeof info.topology === "string" ? info.topology : info.topology.name;
+export type LobbyOptions = {
+    /** The signal server, `ws://` or `wss://`. */
+    url: string;
+    /** Its HTTP side, for `/health` and `/networks`. */
+    http: string;
+    /** Every lobby of this app has this name, that's how they find each other. */
+    name: string;
+    meta?: Record<string, unknown>;
+    rtc?: RTCConfiguration;
+    anchors?: number;
+    beacon?: number;
+    handshakeTimeout?: number;
+    /** ms between an anchor's looks for a lobby to merge into. */
+    rescan?: number;
+    retryMin?: number;
+    retryMax?: number;
+};
 
-/** The oldest network is the real one, ties go to the smaller id. */
-const compare = (a: Info, b: Info) => created(a) - created(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+const byId = (a: Info, b: Info) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 
 /**
- * The one shared network every player is in, plumbing nobody sees. A game is a room inside it. There's
- * a lot to copy from papchat's lobby here, but no profiles, passwords or presence.
+ * The one public chord network of an app, plumbing nobody sees. It knows nothing about the game, so other
+ * games can use it as it is.
+ *
+ * - Found with `GET /networks`, the lowest id wins. None, or a join that fails: create one at once. It
+ *   never waits for a part that drifted off to come back.
+ * - A drifted part re-anchors on its own after missing three beacons, then two lobbies are listed. The
+ *   anchor of each looks now and then and merges into the lower id, so everyone can meet again.
+ * - A game is a network carried by this one (`carry`), which the server never sees.
  */
 export class Lobby {
     readonly status: () => LobbyStatus;
+    readonly client: Client;
+    network: Network | null = null;
     private setStatus: (status: LobbyStatus) => void;
-    private client: Client | null = null;
-    private nextCall = 0;
     private closed = false;
-    private guarding = false;
+    private merging = false;
     private timer: ReturnType<typeof setInterval> | undefined;
-    private beat: ReturnType<typeof setInterval> | undefined;
-    private known = new Set<string>();
 
-    constructor(private profile: { name: string }) {
+    constructor(private options: LobbyOptions) {
         [this.status, this.setStatus] = signal<LobbyStatus>("connecting");
+        this.client = new Client({ url: options.url, rtc: options.rtc, handshakeTimeout: options.handshakeTimeout });
     }
 
-    /** The id this player has on the network. It changes when the socket reconnects and the host is lost. */
+    /** The lobby's id now. It changes when this lobby merges into another. */
     get id() {
-        return this.client?.id ?? null;
+        return this.network?.info?.id ?? null;
     }
 
-    /** Resolves once we're in the shared network, however long that takes. */
-    async start() {
-        const client = this.client = new Client({
-            url: signalUrl(),
-            rtc: RTC,
-            timeout: CALL_TIMEOUT,
-            topology: "chord",
-            profile: this.profile,
-            // only the younger of two lobbies asks to merge, so the older one says yes
-            acceptMerge: () => true,
-        });
-        client.addEventListener("status", this.sync);
-        client.addEventListener("members", this.greet);
-        // back on a socket, or the host now: the server may hold another lobby by now
-        client.addEventListener("status", () => {
-            if (client.status === "connected" && client.network) void this.guard(client);
-        });
-        client.addEventListener("host", () => void this.guard(client));
-
-        let delay = RETRY_MIN;
+    /** Resolves once we're in a lobby. `prefer` is the one an invite names, tried first when it's listed. */
+    async start(prefer?: string) {
+        let delay = this.options.retryMin ?? 3000;
         while (!this.closed)
         {
             try
             {
-                await this.enter(client);
+                const network = await this.enter(prefer);
+                this.network = network;
                 this.setStatus("ready");
-                void this.guard(client);
-                this.timer = setInterval(() => void this.guard(client), RESCAN);
-                // a tiny message to everyone: it keeps links warm, so a dead neighbour is noticed and dropped
-                this.beat = setInterval(() => { if (client.network && !document.hidden) client.broadcast("here"); }, HEARTBEAT);
-                return;
+                network.addEventListener("close", () => this.lost(network));
+                clearInterval(this.timer);
+                this.timer = setInterval(() => void this.mergeCheck(), this.options.rescan ?? 20_000);
+                return network;
             }
             catch (error)
             {
-                if (this.closed) return;
+                if (this.closed) break;
                 console.warn("lobby: trying again", error);
                 this.setStatus("failed");
                 await wait(delay);
-                delay = Math.min(delay * 2, RETRY_MAX);
+                delay = Math.min(delay * 2, this.options.retryMax ?? 30_000);
             }
         }
+        throw new Error("closed");
+    }
+
+    /** A network carried by the lobby, made here. */
+    create(draft: Parameters<Client["create"]>[0], setup: Omit<NonNullable<Parameters<Client["create"]>[1]>, "bootstrap"> = {}) {
+        const id = crypto.randomUUID();
+        return this.client.create(draft, { ...setup, bootstrap: new ParentBootstrap(this.need(), id) });
+    }
+
+    /** A network carried by the lobby, joined by its invite. */
+    join(invite: Info, request: Parameters<Client["join"]>[1] = {}, setup: Omit<NonNullable<Parameters<Client["join"]>[2]>, "bootstrap"> = {}) {
+        return this.client.join(invite, request, { ...setup, bootstrap: new ParentBootstrap(this.need(), invite.id) });
+    }
+
+    /** Is our lobby still listed? If not, become its anchor now, so an invite naming it still works. */
+    async keepListed() {
+        const network = this.network;
+        if (!network || network.anchored || this.closed) return;
+        const listed = await this.list().catch(() => null);
+        if (!listed || listed.some(info => info.id === network.info?.id)) return;
+
+        console.info("lobby: ours isn't listed, anchoring it again");
+        // papit 0.1 gap: a peer with no socket can't anchor, the call rejects with "no socket"
+        await network.anchor().catch(error => console.warn("lobby: couldn't anchor", error));
     }
 
     close() {
         this.closed = true;
         clearInterval(this.timer);
-        clearInterval(this.beat);
-        this.client?.close();
+        this.network?.leave();
+        this.client.close();
     }
 
-    async room(options: Parameters<Client["room"]>[0]) {
-        return this.client!.room(options);
+    private need() {
+        if (!this.network || this.network.closed) throw new Error("not in the lobby");
+        return this.network;
     }
 
-    async joinRoom(id: string, host: string) {
-        return this.client!.joinRoom(id, host);
-    }
+    private async enter(prefer?: string) {
+        await this.wake();
+        const { name, meta, anchors, beacon } = this.options;
+        const acceptMerge = (info: Info) => info.name === name;
 
-    setName(name: string) {
-        if (name === this.profile.name) return;
-        this.profile.name = name;
-        if (this.client?.network) this.client.setProfile({ name });
-    }
+        const listed = (await this.list()).filter(info => info.name === name).sort(byId);
+        const first = listed.find(info => info.id === prefer) ?? listed[0];
+        console.info("lobby: found", listed.map(info => info.id.slice(0, 8)));
 
-    private sync = () => {
-        const client = this.client;
-        if (!client || client.network) return;
-        this.setStatus(client.status === "waking" ? "waking" : client.status === "closed" ? "failed" : "connecting");
-    };
-
-    /**
-     * A host back on a new socket keeps its peer id, but a newcomer only gets through to it once it has
-     * heard from it, so their invite link would never work. Saying hello fixes that, as in papchat.
-     */
-    private greet = () => {
-        const client = this.client;
-        if (!client?.network) return;
-        const fresh = client.members.filter(member => member !== client.id && !this.known.has(member));
-        this.known = new Set(client.members);
-        if (client.host !== client.id || client.serverId === client.network.id) return;
-        for (const peer of fresh) client.send(peer, "here");
-    };
-
-    /** Joins the most canonical lobby we can, or makes one. */
-    private async enter(client: Client) {
-        await client.ready;
-
-        // a lobby that doesn't answer is most likely empty, a live one is merged with later by the guard
-        const found = await this.lobbies(client);
-        console.info("lobby: found", JSON.stringify(found.map(i => ({ id: i.id.slice(0, 8), created: i.meta?.created, size: (i as any).size }))));
-        const [lobby] = found;
-        if (lobby)
+        if (first)
         {
             try
             {
-                await this.call(() => client.join(lobby.id));
+                const network = await this.client.join(first.id, {}, { acceptMerge });
+                console.info("lobby: joined", first.id.slice(0, 8));
+                return network;
             }
             catch (error)
             {
-                console.warn("lobby: could not join", lobby.id, error);
+                // a lobby we can't get into is as good as none, we don't wait for it
+                console.warn("lobby: could not join, making a new one", first.id, error);
             }
         }
 
-        if (client.network) { console.info("lobby: joined", client.network.id.slice(0, 8), "members", client.members.length); return; }
-        console.info("lobby: creating my own");
-        await this.call(() => client.create({
-            name: LOBBY_NAME,
-            meta: { app: APP, kind: "lobby", v: 1, created: Date.now() },
-        }));
+        const network = await this.client.create({ name, topology: "chord", meta, anchors, beacon }, { acceptMerge });
+        console.info("lobby: created", network.info?.id.slice(0, 8));
+        return network;
     }
 
-    private async lobbies(client: Client) {
-        const all = await this.call(() => client.list());
-        return all.filter(info => info.meta?.app === APP && info.meta?.kind === "lobby").sort(compare);
+    /** A sleeping free server boots on any request, `/health` is the cheap one. */
+    private async wake() {
+        for (let i = 0; !this.closed; i++)
+        {
+            try
+            {
+                const response = await fetch(`${this.options.http}/health`, { signal: AbortSignal.timeout(10_000) });
+                if (response.ok) return;
+            }
+            catch { /* asleep, or not there */ }
+            this.setStatus("waking");
+            await wait(Math.min(2000 * (i + 1), 10_000));
+        }
     }
 
-    /** Two people can make a lobby at once, then the younger one's host merges into the older. */
-    private async guard(client: Client) {
-        if (this.guarding || this.closed || !client.network || client.host !== client.id) return;
-        this.guarding = true;
+    private async list(): Promise<Info[]> {
+        const response = await fetch(`${this.options.http}/networks`, { signal: AbortSignal.timeout(10_000) });
+        if (!response.ok) throw new Error(`/networks answered ${response.status}`);
+        const all = await response.json();
+        return Array.isArray(all) ? all : [];
+    }
+
+    /** Only an anchor can merge. Two lobbies of this app: the higher id goes into the lower. */
+    private async mergeCheck() {
+        const network = this.network;
+        if (this.merging || this.closed || !network?.anchored || !network.info) return;
+        this.merging = true;
 
         try
         {
-            await wait(RACE_GUARD);
-            const lobbies = await this.lobbies(client);
-            const mine = lobbies.find(info => info.id === client.serverId);
-            if (!mine) return;
+            const mine = network.info.id;
+            const lower = (await this.list())
+                .filter(info => info.name === this.options.name && info.id < mine)
+                .sort(byId)[0];
+            if (!lower) return;
 
-            for (const other of lobbies)
-            {
-                if (compare(other, mine) >= 0) break;
-                if (topologyOf(other) !== topologyOf(mine)) continue;
-                try
-                {
-                    await this.call(() => client.merge(other.id));
-                    return;
-                }
-                catch (error)
-                {
-                    console.warn("lobby: merge refused", error);
-                }
-            }
+            console.info("lobby: merging into", lower.id.slice(0, 8));
+            await network.merge(lower.id);
         }
         catch (error)
         {
-            console.warn("lobby: scan failed", error);
+            console.warn("lobby: merge failed", error);
         }
         finally
         {
-            this.guarding = false;
+            this.merging = false;
         }
     }
 
-    private async call<T>(run: () => Promise<T>) {
-        const now = Date.now();
-        const at = Math.max(now, this.nextCall);
-        this.nextCall = at + SERVER_GAP;
-        if (at > now) await wait(at - now);
-        return run();
+    /** The lobby closed under us, so find or make one again. */
+    private lost(network: Network) {
+        if (this.closed || this.network !== network) return;
+        this.network = null;
+        this.setStatus("connecting");
+        void this.start();
     }
 }

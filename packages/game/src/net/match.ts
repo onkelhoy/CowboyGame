@@ -1,7 +1,8 @@
-import type { Room } from "./lobby";
+import type { Network } from "@papit/webrtc";
 
 const PINGS = 5;
 const PING_GAP = 150;
+const NAME_MAX = 16;
 
 type Handler = (payload: any, sender: string) => void;
 
@@ -9,40 +10,53 @@ type Handler = (payload: any, sender: string) => void;
 export type PoseMessage = { n: number; s: number; d: -1 | 0 | 1 };
 
 /**
- * The two of us in one room. Reliable messages by name, a pose channel that may lose some, and a clock
- * we share: the host's `performance.now()`, found with a few pings.
+ * The two of us in one duel, a mesh network carried by the lobby. Reliable messages by name, a pose
+ * channel that may lose some, names as messages, and a clock we share: the host's `performance.now()`,
+ * found with a few pings.
  */
 export class Match {
     /** The other player's id, once they're here. */
     peer: string | null = null;
     /** Milliseconds for a message to go there and back, the lowest we've seen. */
     rtt = 100;
+    private theirName = "";
     private offset = 0;
     private handlers = new Map<string, Handler[]>();
     private joined: (() => void)[] = [];
     private left: (() => void)[] = [];
+    private named: (() => void)[] = [];
     private poses: ((pose: PoseMessage) => void)[] = [];
     private best = Infinity;
     private pose;
     private sequence = 0;
     private newest = -1;
 
-    constructor(readonly room: Room, readonly host: boolean) {
+    constructor(readonly duel: Network, readonly host: boolean, private myName: () => string) {
         // messages before the first `channel()` call are dropped, so it's asked for right away
-        this.pose = room.media.channel("pose");
+        this.pose = duel.media.channel("pose");
         this.pose.addEventListener("message", event => this.read((event as CustomEvent).detail.data));
 
-        room.addEventListener("message", event => {
-            const { type, sender, payload } = (event as CustomEvent).detail;
-            for (const handler of this.handlers.get(type) ?? []) handler(payload, sender);
+        duel.addEventListener("message", event => {
+            const message = (event as CustomEvent).detail;
+            const { type, sender } = message.meta;
+            let payload: unknown;
+            try { payload = message.parse(); } catch { return; }
+            for (const handler of this.handlers.get(type) ?? []) handler(payload ?? {}, sender);
         });
-        room.addEventListener("peer", event => this.arrived((event as CustomEvent).detail as string));
-        room.addEventListener("peer-left", event => {
-            if ((event as CustomEvent).detail !== this.peer) return;
-            this.peer = null;
-            for (const handler of this.left) handler();
+        duel.addEventListener("link", event => {
+            const { peer, open } = (event as CustomEvent).detail as { peer: string; open: boolean };
+            if (open) void this.arrived(peer);
+            else if (peer === this.peer) this.gone();
         });
 
+        // a duel closes with its lobby, which for us is the other player gone
+        duel.addEventListener("close", () => { if (this.peer) this.gone(); });
+
+        this.on("name", ({ name }, sender) => {
+            if (sender !== this.peer) return;
+            this.theirName = String(name ?? "").slice(0, NAME_MAX);
+            for (const handler of this.named) handler();
+        });
         this.on("ping", (payload, sender) => this.send("pong", { ...payload, th: performance.now() }, sender));
         this.on("pong", ({ t0, th }) => {
             const now = performance.now();
@@ -53,8 +67,8 @@ export class Match {
             if (!this.host) this.offset = th + rtt / 2 - now;
         });
 
-        const [other] = room.members.filter(member => member !== room.id);
-        if (other) this.arrived(other);
+        const [other] = [...duel.linked].filter(peer => peer !== duel.me);
+        if (other) void this.arrived(other);
     }
 
     /** The host's clock. */
@@ -75,6 +89,10 @@ export class Match {
         this.left.push(handler);
     }
 
+    onName(handler: () => void) {
+        this.named.push(handler);
+    }
+
     onPose(handler: (pose: PoseMessage) => void) {
         this.poses.push(handler);
     }
@@ -85,7 +103,17 @@ export class Match {
 
     /** Reliable. */
     send(type: string, payload: unknown = {}, to: string | null = this.peer) {
-        return to ? this.room.send(to, type, payload) : false;
+        if (!to || this.duel.closed) return false;
+        try
+        {
+            this.duel.send(to, type, payload);
+            return true;
+        }
+        catch (error)
+        {
+            console.warn("match: send failed", type, error);
+            return false;
+        }
     }
 
     /** Unreliable and unordered, the newest pose is the only one that counts. */
@@ -95,17 +123,29 @@ export class Match {
         this.pose.send(this.peer, JSON.stringify(pose));
     }
 
+    /** Our name changed, so theirs sign changes too. */
+    sendName() {
+        this.send("name", { name: this.myName().slice(0, NAME_MAX) });
+    }
+
     name(): string {
-        return this.peer ? String(this.room.profile(this.peer)?.name ?? "") : "";
+        return this.peer ? this.theirName : "";
     }
 
     close() {
-        this.room.close();
+        if (!this.duel.closed) this.duel.leave();
+    }
+
+    private gone() {
+        this.peer = null;
+        this.theirName = "";
+        for (const handler of this.left) handler();
     }
 
     private async arrived(peer: string) {
-        if (peer === this.peer) return;
+        if (peer === this.peer || peer === this.duel.me) return;
         this.peer = peer;
+        this.sendName();
         for (const handler of this.joined) handler();
 
         this.best = Infinity;
