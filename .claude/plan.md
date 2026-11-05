@@ -4,7 +4,8 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** task 12, the feel pass, and task 31, the live test with a friend. Both need the owner. Everything else is built, except task 28, which is skipped because there are no tests for now. The site is on GitHub Pages at <https://onkelhoy.github.io/CowboyGame/>, built on every push to `main`.
+- **Next:** the network move to papit 0.1, tasks 32 to 38 under [Network 0.1](#network-01). Confirmed, waiting for papit 0.1.0 on npm. Task 12, the feel pass, still needs the owner, and task 31, the live test, now comes after task 38.
+- **Before 0.1:** Everything else is built, except task 28, which is skipped because there are no tests for now. The site is on GitHub Pages at <https://onkelhoy.github.io/CowboyGame/>, built on every push to `main`.
 - **Version page:** `/CowboyGame/version` lists the releases (git tags `v0.0.N`, made by the pages workflow after a deploy) and checks live whether this device reaches the signal server and STUN. `?signal=` is honoured. The pole button is now "Play": it readies and goes fullscreen (locks landscape where allowed), and the corner has a fullscreen toggle.
 - **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. The files in `packages/game/tests` are from before that call and aren't kept up. This overrides the brief and any task below that mentions tests, including task 28.
 - **Branch:** `main` is the game and every push to it deploys, so work on a branch and merge. The 2018 game is on `old-version` in the same repo, `onkelhoy/CowboyGame`.
@@ -237,3 +238,47 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - Text: every word is in `asset/translations/en.json` and `sv.json` under `cowboy`. Swedish is picked by the browser's language, with no picker. The Swedish was written by the assistant, the owner should read it.
 - Pages: `npm run pages` makes `docs/`, checked under `/cowboy/` with no failed requests, the base is `/CowboyGame/` now. Icons come from `asset/manifest.logo.svg`, else `asset/logo.svg`, else a drawn cylinder, made by `bin/icons.mjs` (PNGs through Playwright, on your machine only: they're committed, so a new logo means committing the new PNGs). No service worker.
 - The sound effects' source isn't written down, see `CREDITS.md`.
+
+## Network 0.1
+
+Status: **confirmed by the owner, 2026-11-05.** Source: `PAPIT-INSIGHT.md` and the 0.1 READMEs on papit's `refactor/topology-engine` branch.
+
+Why: on 0.0.x a host kept the member list, and players who left without saying so stayed in it as ghosts. Chord routed through them and joins timed out. 0.1 has no host and no member list, a dead link drops out by itself, and the server only hands out live anchors. Most of our workarounds go away with it.
+
+### Decisions
+
+| Call | Decision |
+| --- | --- |
+| Lobby | A public `chord` network named `cowboy`, `meta: { app: "cowboy", kind: "lobby", v: 2 }`, one anchor, the default 10 s beacon. `acceptMerge: info => info.name === "cowboy"` on both `create` and `join`. Chord and merging are more than a 1v1 game needs, on purpose: this is a pattern for other games, so `src/net/lobby.ts` takes the app name and settings and knows nothing about cowboy. |
+| Anchors | **One** (`anchors: 1`). The creator is the anchor, everyone else closes their socket about 1 s after joining. |
+| Never wait for a drifted part | A newcomer reads `GET /networks`. None listed: create one at once. One listed but the join fails: create one at once too, never wait for a lost part to re-anchor. The server drops a dead anchor within about 2 s (its heartbeat), so the list is fresh, and `handshakeTimeout` goes down to about 5 s so a join that can't connect fails fast. |
+| Drifted parts come back by merging | A part whose anchor left re-anchors after three missed beacons and comes back under its own id. Now two `cowboy` lobbies are listed, and the anchor of each checks `/networks` every 20 s and merges into the one with the lowest id, so everyone can meet again. Most games are one invite, one duel and both leave, so this is rare, but it works. |
+| The waiting host | A host whose link is out, while nobody has joined, checks `/networks` every 5 s. If their lobby is gone they call `lobby.anchor()` at once rather than waiting for the beacon, so the link's lobby id is back within seconds. |
+| A duel | Its own `mesh` network carried by the lobby: `client.create({ name: "duel", topology: "mesh", media: { channels: { pose } } }, { bootstrap: new ParentBootstrap(lobby, crypto.randomUUID()), accept })`. The server never sees it, and the two players get their own direct connection. |
+| The link | `?by=<name>#<base64 JSON { lobby, invite }>`, where `invite` is `duel.invite()`. `?signal=` stays in it. |
+| Guest | Joins the lobby by the link's id, or by name when that id is gone, then joins the invite through `ParentBootstrap(lobby, invite.id)`. |
+| Third player | `accept` refuses anyone while `match.peer` is set. A reject means "this game is full". |
+| Dead link | Every entry in the invite tried for 5 s each, then "this game has ended" and the guest becomes a host with a fresh link, as now. |
+| Names | The `profile` only goes to the entry's `accept` now, so names travel as a `name` message on the duel, sent on arrival and on change. |
+| Arrive and leave | The duel's `link` event (`{ peer, open, left }`) replaces `peer` and `peer-left`. `bye` on `pagehide` stays, it's faster than a dead connection. `away` and `back` stay. |
+| Host must stay | The duel closes when its lobby does, so the host stays in the lobby. Nothing to do, the lobby is never left until the tab closes. |
+| Server waking | `GET /health` until it answers, shown as "waking up". `client.online` for the rest. |
+| Goes away | `greet`, the `here` heartbeat, `watch` (the peer id stays the same now), the 18 s join loop, `SERVER_GAP` spacing, `client.list()`, `setProfile`. |
+
+### Tasks
+
+Work on a branch `net-0.1`. Nothing installs until the owner says 0.1.0 is on npm.
+
+32. **Install 0.1.** Check with `npm view` that `@papit/webrtc`, `@papit/signal-server` and `@papit/peer-message` are at 0.1.0, else stop and tell the owner. Install them, reread their READMEs and types, and fix this section where the code disagrees. Check in the code that `network.anchor()` on a lobby the server forgot brings it back under the same id, as the signal server README says, since the waiting host depends on it.
+33. **The lobby.** Rewrite `src/net/lobby.ts`, app-agnostic: wake with `/health`, find by `/networks`, join or create at once with one anchor, the beacon, `acceptMerge`, retry, and the anchor's merge check. Test early with a local `npm run signal`: two tabs, then two lobbies made at once that merge into one.
+34. **Host a duel.** Rewrite `src/net/match.ts` on a `Network`: `link` events, `name` messages, the `pose` channel, the ping clock. The host makes the carried duel and the new link in `src/link.ts`, and the QR dialog shows it.
+35. **Join from the link.** The guest's flow in `src/online.ts`: lobby by id or by name, join the invite, "full", "ended" and rehost. Delete `watch` and the 18 s loop. Checked by hand with two browsers: host, guest, ready, a round, a third player, a dead link.
+36. **The lobby under stress.** By hand on the local server: the anchor closes its tab (a newcomer creates a new lobby at once, the drifted part re-anchors and merges into it), the anchor closes while a host waits (the host re-anchors, the old link still works), the server restarts, a merge while a duel is open (does the duel survive?), a guest whose link names a lobby id that changed by a merge (falls back by name). Write down what we find, and tell the owner about any papit bug.
+37. **Clean up.** Remove dead constants from `config.ts`, update the `/version` page checks to `/health` and `/networks`, rewrite the network technical notes above, and strike the papit gaps that 0.1 fixed.
+38. **Roll out, one step.** 0.1 doesn't talk to 0.0.x, so in this order: the owner deploys `@papit/signal-server` 0.1.0 on Render, then `net-0.1` merges to `main` and Pages deploys, then every open tab reloads. Then task 31, the live test, which is the first merge over real WebRTC and the first time on phones.
+
+### Known limits we accept
+
+- A carried duel doesn't heal a split. If the two lose each other, the game is over, as it is now.
+- A merge over real WebRTC and a busy lobby on Render are untested in papit, so tasks 36 and 38 are where we find out.
+- Two players in different parts of a split lobby can't reach each other until the merge. A link that fails in that time reads as a dead link, and the guest rehosts.
