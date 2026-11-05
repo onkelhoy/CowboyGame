@@ -208,7 +208,9 @@ export class Online {
             return;
         }
 
-        void this.lobby.keepListed();
+        // off: papit 0.1.0 can't take joins through a peer that anchored on a new socket, so a lobby
+        // listed again this way only traps newcomers. Back on once that's fixed.
+        // void this.lobby.keepListed();
         this.link(match.duel);
     }
 

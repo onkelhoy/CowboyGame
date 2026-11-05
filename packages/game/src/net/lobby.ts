@@ -19,6 +19,8 @@ export type LobbyOptions = {
     anchors?: number;
     beacon?: number;
     handshakeTimeout?: number;
+    /** ms before we give up on joining a listed lobby and make our own. */
+    joinTimeout?: number;
     /** ms between an anchor's looks for a lobby to merge into. */
     rescan?: number;
     retryMin?: number;
@@ -133,7 +135,7 @@ export class Lobby {
         {
             try
             {
-                const network = await this.client.join(first.id, {}, { acceptMerge });
+                const network = await this.joinQuick(first.id, acceptMerge);
                 console.info("lobby: joined", first.id.slice(0, 8));
                 return network;
             }
@@ -147,6 +149,31 @@ export class Lobby {
         const network = await this.client.create({ name, topology: "chord", meta, anchors, beacon }, { acceptMerge });
         console.info("lobby: created", network.info?.id.slice(0, 8));
         return network;
+    }
+
+    /**
+     * papit gives a join 15 s. A lobby that doesn't answer in `joinTimeout` is as good as gone, so we stop
+     * waiting and close the join that's still under way.
+     */
+    private async joinQuick(id: string, acceptMerge: (info: Info) => boolean) {
+        const before = new Set(this.client.networks);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const timeout = new Promise<never>((_, reject) => {
+            timer = setTimeout(() => reject(new Error("join timed out")), this.options.joinTimeout ?? 6000);
+        });
+        try
+        {
+            return await Promise.race([this.client.join(id, {}, { acceptMerge }), timeout]);
+        }
+        catch (error)
+        {
+            for (const network of this.client.networks) if (!before.has(network)) network.close();
+            throw error;
+        }
+        finally
+        {
+            clearTimeout(timer);
+        }
     }
 
     /** A sleeping free server boots on any request, `/health` is the cheap one. */
