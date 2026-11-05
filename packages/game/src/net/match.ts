@@ -52,9 +52,11 @@ export class Match {
         // a duel closes with its lobby, which for us is the other player gone
         duel.addEventListener("close", () => { if (this.peer) this.gone(); });
 
-        this.on("name", ({ name }, sender) => {
+        // either side can be listening late, so whoever sends `ask` gets a name back
+        this.on("name", ({ name, ask }, sender) => {
             if (sender !== this.peer) return;
             this.theirName = String(name ?? "").slice(0, NAME_MAX);
+            if (ask === true) this.sendName(false);
             for (const handler of this.named) handler();
         });
         this.on("ping", (payload, sender) => this.send("pong", { ...payload, th: performance.now() }, sender));
@@ -124,8 +126,8 @@ export class Match {
     }
 
     /** Our name changed, so theirs sign changes too. */
-    sendName() {
-        this.send("name", { name: this.myName().slice(0, NAME_MAX) });
+    sendName(ask = false) {
+        this.send("name", { name: this.myName().slice(0, NAME_MAX), ask });
     }
 
     name(): string {
@@ -145,7 +147,7 @@ export class Match {
     private async arrived(peer: string) {
         if (peer === this.peer || peer === this.duel.me) return;
         this.peer = peer;
-        this.sendName();
+        this.sendName(true);
         for (const handler of this.joined) handler();
 
         this.best = Infinity;
