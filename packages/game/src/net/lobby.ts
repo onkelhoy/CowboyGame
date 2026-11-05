@@ -29,6 +29,9 @@ export type LobbyOptions = {
 
 const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 const byId = (a: Info, b: Info) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+/** Every field of `want` is the same in `info.meta`, so an older version's lobby is left alone. */
+const metaMatches = (info: Info, want: Record<string, unknown> = {}) =>
+    Object.entries(want).every(([key, value]) => (info.meta as Record<string, unknown> | undefined)?.[key] === value);
 
 /**
  * The one public chord network of an app, plumbing nobody sees. It knows nothing about the game, so other
@@ -125,9 +128,9 @@ export class Lobby {
     private async enter(prefer?: string) {
         await this.wake();
         const { name, meta, anchors, beacon } = this.options;
-        const acceptMerge = (info: Info) => info.name === name;
+        const acceptMerge = (info: Info) => info.name === name && metaMatches(info, meta);
 
-        const listed = (await this.list()).filter(info => info.name === name).sort(byId);
+        const listed = (await this.list()).filter(info => info.name === name && metaMatches(info, meta)).sort(byId);
         const first = listed.find(info => info.id === prefer) ?? listed[0];
         console.info("lobby: found", listed.map(info => info.id.slice(0, 8)));
 
@@ -208,7 +211,7 @@ export class Lobby {
         {
             const mine = network.info.id;
             const lower = (await this.list())
-                .filter(info => info.name === this.options.name && info.id < mine)
+                .filter(info => info.name === this.options.name && metaMatches(info, this.options.meta) && info.id < mine)
                 .sort(byId)[0];
             if (!lower) return;
 
