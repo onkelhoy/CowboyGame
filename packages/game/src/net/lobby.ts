@@ -103,8 +103,9 @@ export class Lobby {
         if (!listed || listed.some(info => info.id === network.info?.id)) return;
 
         console.info("lobby: ours isn't listed, anchoring it again");
-        // papit 0.1 gap: a peer with no socket can't anchor, the call rejects with "no socket"
-        await network.anchor().catch(error => console.warn("lobby: couldn't anchor", error));
+        // papit 0.1.0 gap: `network.anchor()` from a peer with no socket rejects with "no socket". The
+        // Client only opens the socket for an `anchor-request`, so we ask ourselves. Drop this when fixed.
+        network.dispatchEvent(new CustomEvent("anchor-request", { detail: { from: network.me } }));
     }
 
     close() {
