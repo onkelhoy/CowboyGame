@@ -4,11 +4,10 @@ Status: **confirmed by the owner, 2026-11-02.** Papit is released and installed 
 
 ## Where we are
 
-- **Next:** the network move to papit 0.1, tasks 32 to 38 under [Network 0.1](#network-01). Confirmed, waiting for papit 0.1.0 on npm. Task 12, the feel pass, still needs the owner, and task 31, the live test, now comes after task 38.
-- **Written ahead of 0.1, 2026-11-05, on branch `net-0.1`:** the owner asked for tasks 32 to 35 as if 0.1 were out. `@papit/webrtc` is `^0.1.0` in `packages/game/package.json` but not installed, so `npm install` and a build are still to do once it is on npm. The new `lobby.ts`, `match.ts`, `link.ts` and `online.ts` type-check clean against papit's branch source and have never run. Task 36 is all hand testing, so it waits for 0.1. The split recovery gap under [Papit gaps to report](#papit-gaps-to-report) still holds, and `Lobby.keepListed` hits it.
-- **Before 0.1:** Everything else is built, except task 28, which is skipped because there are no tests for now. The site is on GitHub Pages at <https://onkelhoy.github.io/CowboyGame/>, built on every push to `main`.
+- **Done:** the game is built and live on GitHub Pages at <https://onkelhoy.github.io/CowboyGame/>, built on every push to `main`. Done tasks were removed from this plan on 2026-11-05, git history has them.
+- **Now:** the network move to papit 0.1, see [Tasks](#tasks) and [Network 0.1](#network-01). Tasks 2 to 4 are written ahead of the release on branch `net-0.1`, type-check clean against papit's branch source, and have never run. `@papit/webrtc` is `^0.1.0` in `packages/game/package.json` but not installed: 0.1.0 wasn't on npm when last checked (2026-11-05). The split recovery gap under [Papit gaps to report](#papit-gaps-to-report) still holds, and `Lobby.keepListed` hits it.
 - **Version page:** `/CowboyGame/version` lists the releases (git tags `v0.0.N`, made by the pages workflow after a deploy) and checks live whether this device reaches the signal server and STUN. `?signal=` is honoured. The pole button is now "Play": it readies and goes fullscreen (locks landscape where allowed), and the corner has a fullscreen toggle.
-- **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. The files in `packages/game/tests` are from before that call and aren't kept up. This overrides the brief and any task below that mentions tests, including task 28.
+- **Tests:** none for now, the owner's call on 2026-11-02 to save tokens. Don't write or run tests unless the owner asks. The files in `packages/game/tests` are from before that call and aren't kept up. This overrides the brief.
 - **Branch:** `main` is the game and every push to it deploys, so work on a branch and merge. The 2018 game is on `old-version` in the same repo, `onkelhoy/CowboyGame`.
 - **Read first:** `BRIEF.md`, this file, then papit's `.claude/CATALOG.md`.
 - **Try it alone:** `npm start`, then <http://localhost:3000/views/game/?bot>. `?bot` and `?stage` skip the landing sign and the network.
@@ -97,12 +96,9 @@ The concept is "challenge your friend". There's no main menu, only the game behi
 | Hosting | `@papit/static` to GitHub Pages under `/CowboyGame/`, built by `.github/workflows/pages.yml` as in papchat. `docs/` is not committed. |
 | Licences | Ship neither ZitronSound nor Durango Western. Suno songs replace the music. The font is Rye, SIL OFL, self-hosted in `asset/fonts/` with its licence. |
 
-## Blockers, checked 2026-11-02
+## Owner's files
 
-1. **Papit release.** Done. npm matches the repo: `game-engine` 0.2.0, `vector` and `matrix` 0.0.2, `armature`, `quaternion` and `line-intersection` 0.0.1.
-2. `webrtc` 0.0.7, `signal-server` 0.0.6 and the UI packages match the repo. Nothing to do.
-3. Repository: done. The game lives in the existing `github.com/onkelhoy/CowboyGame`.
-4. Suno songs, logo and manifest logo: the owner adds them to the root `asset/` folder later. The plan runs without them until task 26, and a missing file means silence, not a crash.
+Suno songs, logo and manifest logo live in the root `asset/` folder. A missing file means silence, not a crash.
 
 Files the game looks for: `asset/music/menu.mp3`, `asset/music/duel.mp3`, `asset/logo.svg`, `asset/manifest.logo.svg`.
 
@@ -110,57 +106,19 @@ The server and static build don't collect the root `asset/`. `packages/game/bin/
 
 ## Tasks
 
-### Resync
-0. **Resync with the papit release.** Removes the stopgap below, then checks that the plan still holds.
-   - Check with `npm view` that `game-engine`, `vector`, `matrix`, `armature`, `quaternion` and `line-intersection` are out. If any is missing, tell the owner and stop.
-   - Delete `vendor/`. Run `git checkout package.json` to drop the `overrides`.
-   - Delete `packages/game/`, which is an uncommitted scaffold with `file:` dependencies and a hand-edited `package.json`. Task 1 makes it again.
-   - Delete `node_modules` and `package-lock.json`, then `npm install`, so every `@papit/*` comes in at its newest version.
-   - Reread the catalog and the READMEs of `game-engine`, `armature`, `webrtc` and `create`. Compare them with the technical notes below, fix what changed, and tell the owner if a change affects the plan.
-   - Commit, including `package-lock.json`.
+Only what's left. Tasks 1 to 7 are the move to papit 0.1, details under [Network 0.1](#network-01). Work on branch `net-0.1`.
 
-### Something visible
-1. **Package and blank canvas.** Create `packages/game` with `npm create @papit -- --package=game --name=game --description="..." --destination=packages --no --html-prefix=cowboy`, add the papit dependencies, serve an empty engine with `npm start`. Check whether the root `asset/` folder gets served.
-2. **The map.** Fixed world, fit to screen, drawn background, ground, houses, barrels, cactus, the pole with two arrow signs, turn-your-phone overlay.
-3. **Two cowboys.** Port the armature view, both drawn and mirrored, posed from stand and shoot values.
-4. **Hold to rise.** Mouse, touch and space share one input. Long press is safe on a phone.
-
-### Behaviour, played alone
-5. **Rules.** Pure module with tests: rise, duck, draw line, release to fire, top fires, recoil, ammo, reload, feint.
-6. **Bullets.** Spread from release timing, flight, hits on head, body and barrel through `@papit/line-intersection`.
-7. **Practice bot.** `?bot` adds a simple opponent, so feel can be tuned before any network exists.
-8. **Ragdoll.** Verlet port, push from the bullet, drawn through `ik.setPositions`.
-9. **Sound.** Web Audio loader and first tap unlock, with gains for everything, music and sounds. Shots, hit, reload, empty click, fly-by.
-10. **Revolver.** Turning ammo cylinder at the top centre. The aim cone was tried and removed, the owner doesn't want it in the game.
-11. **The kill.** Slow motion, sound, banner, blood, return to speed, fall.
-12. **Feel pass.** The owner plays against the bot and we tune `tuning.ts`.
-
-### Player and menus
-13. **Corner buttons and settings.** Mute and settings in the top right, name and three volumes, saved in `localStorage`. Pressing them never counts as holding.
-14. **Landing sign.** Wooden sign with name and sound, the guest's invite line, the western font, upright on phones.
-
-### Online
-15. **Lobby.** Shared chord network: oldest wins, race guard, retry, friendly "waking up" state.
-16. **Host and link.** Bring in `qr-code` and `share-link`. The room opens and the QR dialog shows link and copy. Guest opens the link and joins.
-17. **Room link and clock.** Room channels, names and the ping clock offset. Message handling gets tests.
-18. **The pole.** Camera on the pole, names on the arrow signs, "I'm ready" for both.
-19. **Zoom and countdown.** Black bars, zoom out to the map, 3, 2, 1, GO! from the host in shared time.
-20. **See the opponent.** Pose over the wire, blended and predicted. Guest sees themselves on the left.
-21. **Shots and hits.** Shared bullets, target decides, kill sequence on both screens, draws.
-22. **Rounds and rematch.** Score, next round, back to the pole after the match.
-
-### Edge cases
-23. **Dead links.** "This game has ended" for a stale link, "this game is full" for a third player, a fresh link for a host who reconnected. The brief says peer ids change on reconnect, while the webrtc README says they stay the same inside a network, so test which it is.
-24. **Leaving and background tabs.** Opponent left message, back to the pole with the QR. A hidden tab pauses the round for both, because a hidden player can't decide hits. Resume through the countdown.
-25. **Failed connections.** Clear message when STUN isn't enough, with the tip to try the same wifi.
-
-### Finish
-26. **Music.** Menu and duel songs from Suno, dip during slow motion.
-27. **Text and language.** All text in `@papit/translator`, checked. Swedish if chosen below.
-28. **Tests.** Fill the gaps in rules and messages, and add a UI smoke test.
-29. **Docs.** Real README, credits, how to run with a local signal server.
-30. **Pages and manifest.** `npm run pages`, `manifest.json` and a first deploy. Icons use `manifest.logo`, falling back to `logo` when it's missing, as a build step, because a manifest has no fallback of its own. Also a PNG for iPhones. The owner pushes.
-31. **Live test.** Two phones, two networks, the owner and a friend.
+| # | Task | Status |
+| --- | --- | --- |
+| 1 | **Install 0.1.** Check with `npm view` that `@papit/webrtc`, `@papit/signal-server` and `@papit/peer-message` are at 0.1.0, else stop and tell the owner. Install them, build, reread their READMEs and types, and fix [Network 0.1](#network-01) where the code disagrees. | Half: version set in `package.json`, waiting for npm |
+| 2 | **The lobby.** `src/net/lobby.ts`, app-agnostic: wake with `/health`, find by `/networks`, join or create at once with one anchor, the beacon, `acceptMerge`, retry, the anchor's merge check. Run it with a local `npm run signal`: two tabs, then two lobbies made at once that merge into one. | Written, not run |
+| 3 | **Host a duel.** `src/net/match.ts` on a `Network`: `link` events, `name` messages, the `pose` channel, the ping clock. The host makes the carried duel and the link in `src/link.ts`, the QR dialog shows it. | Written, not run |
+| 4 | **Join from the link.** The guest in `src/online.ts`: lobby by id or by name, join the invite, "full", "ended" and rehost. Run by hand with two browsers: host, guest, ready, a round, a third player, a dead link. | Written, not run |
+| 5 | **The lobby under stress.** By hand on the local server: the anchor closes its tab (a newcomer creates a new lobby at once, the drifted part re-anchors and merges into it), the anchor closes while a host waits (the host re-anchors, the old link still works), the server restarts, a merge while a duel is open (does the duel survive?), a guest whose link names a lobby id that changed by a merge. Write down what we find, and tell the owner about any papit bug. | Not started |
+| 6 | **Clean up.** Dead code, the `/version` page checks to `/health` and `/networks`, rewrite the network technical notes, strike the papit gaps that 0.1 fixed. | Not started |
+| 7 | **Roll out, one step.** 0.1 doesn't talk to 0.0.x, so in this order: the owner deploys `@papit/signal-server` 0.1.0 on Render, then `net-0.1` merges to `main` and Pages deploys, then every open tab reloads. | Not started, needs the owner |
+| 8 | **Live test.** Two phones, two networks, the owner and a friend. The first merge over real WebRTC and the first time on phones. | Not started, needs the owner |
+| 9 | **Feel pass.** The owner plays against the bot (`?bot`) and we tune `tuning.ts`. Any time. | Not started, needs the owner |
 
 ## Ideas, the owner picks
 
@@ -175,7 +133,7 @@ The server and static build don't collect the root `asset/`. `packages/game/bin/
 
 ## Technical notes
 
-Found while reading the code on 2026-11-02, and checked against the release in task 0.
+Found while reading the code on 2026-11-02, and checked against the release.
 
 **Game package**
 - `views/*/main.ts` is compiled file by file in dev, so a relative import of `src/` fails on the second file. Pages import `@cowboy/game`, the built `lib/bundle.js`. `npm start` from the root builds first and rebuilds on change.
@@ -194,8 +152,8 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - `new Camera()` on a 2D layer multiplies the view into each object's matrix, so `ctx` is already placed in `render`.
 - `camera.shake` already skips for reduced motion.
 - `InputEvents.on("mouse-down")` falls through its `switch` and also registers on the mouse, touch and keyboard targets. Harmless, those never fire that name. A plain `new InputEvents` requests pointer lock, `engine.input` doesn't.
-- `engine.input` can't carry the hold, so task 4 uses native pointer events with `setPointerCapture`, plus `blur`, the way the engine's own camera controllers do. `Mouse` listens for `mouseup` on the canvas only, so a release outside it sticks. `Touches` is fine with `touchcancel`, but a tap also gives emulated mouse events, a second press.
-- Space is the key name `" "`. `Keyboard.handlekeyup` throws when a key was pressed before the page had focus, because `keys[name]` is undefined there, and `blur` doesn't release keys. Task 4 listens on `window` itself.
+- `engine.input` can't carry the hold, so the hold uses native pointer events with `setPointerCapture`, plus `blur`, the way the engine's own camera controllers do. `Mouse` listens for `mouseup` on the canvas only, so a release outside it sticks. `Touches` is fine with `touchcancel`, but a tap also gives emulated mouse events, a second press.
+- Space is the key name `" "`. `Keyboard.handlekeyup` throws when a key was pressed before the page had focus, because `keys[name]` is undefined there, and `blur` doesn't release keys. The hold listens on `window` itself.
 
 **Cowboy and armature**
 - Start from papit's `packages/algorithms/math/armature/views/cowboy/main.js`. Its `limb`, `joint` and `foot` draw order is worth keeping. `Rig` comes from `views/shared/rig.js`, it isn't exported by the package.
@@ -208,7 +166,7 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - `merge` needs `acceptMerge` on the client, or the race guard can't merge two lobbies.
 - Lobby logic to copy: `packages/foundations/core/src/lobby.ts` in papchat, lines 410 to 550 and 756 to 815.
 
-**Online, built in tasks 15 to 25**
+**Online, as built on 0.0.x (replaced by [Network 0.1](#network-01))**
 - `src/net/lobby.ts` is the shared chord network (oldest wins, race guard, retry, 1 s between server calls). `src/net/match.ts` is the room: reliable messages by name, the `pose` channel, and the clock from five pings. `src/online.ts` is the flow: host and guest, the pole, ready, countdown, rounds, leaving, a hidden tab. `src/ui/overlay.ts` holds the bars, countdown, note, buttons and the two dialogs.
 - Each player sees themselves on the left, so a position or angle sent over the wire is in the sender's view and the receiver mirrors it (`x` to `1200 - x`, angle to `PI - angle`).
 - Messages: `ready`, `start {go}`, `round {go, score, over, restart}`, `shot`, `hit {at}`, `away`, `back`, `bye`, `ping`, `pong`. The host decides when a round starts, and the guest takes its score from the host. The target decides hits, the remote cowboy has no hit lines.
@@ -232,9 +190,9 @@ Found while reading the code on 2026-11-02, and checked against the release in t
 - `Keyboard.handlekeyup` throws on a key whose `keydown` it never saw, and `blur` leaves keys pressed.
 - `line-intersection` isn't in `.claude/CATALOG.md`.
 - `pap-button` has its own `display`, so the `hidden` attribute doesn't hide it. We set `style.display` as well.
-- The server's page template adds its own `<title>@papit/server</title>` first, so a page's title loses in dev. Check the static template in task 30.
+- The server's page template adds its own `<title>@papit/server</title>` first, so a page's title loses in dev. Check the static template too.
 
-## Notes from tasks 26 to 30
+## Notes on music, text and pages
 
 - Songs: `La Tierra Va a Hablar` plays at the sign and the pole, `Dust and Steel` in a duel. The owner didn't say which is which, swap them in `SONGS` in `sound.ts` if wrong. They crossfade, and the music dips in slow motion.
 - Text: every word is in `asset/translations/en.json` and `sv.json` under `cowboy`. Swedish is picked by the browser's language, with no picker. The Swedish was written by the assistant, the owner should read it.
@@ -267,20 +225,8 @@ Why: on 0.0.x a host kept the member list, and players who left without saying s
 | Server waking | `GET /health` until it answers, shown as "waking up". `client.online` for the rest. |
 | Goes away | `greet`, the `here` heartbeat, `watch` (the peer id stays the same now), the 18 s join loop, `SERVER_GAP` spacing, `client.list()`, `setProfile`. |
 
-### Tasks
-
-Work on a branch `net-0.1`. Nothing installs until the owner says 0.1.0 is on npm.
-
-32. **Install 0.1.** Check with `npm view` that `@papit/webrtc`, `@papit/signal-server` and `@papit/peer-message` are at 0.1.0, else stop and tell the owner. Install them, reread their READMEs and types, and fix this section where the code disagrees. Check in the code that `network.anchor()` on a lobby the server forgot brings it back under the same id, as the signal server README says, since the waiting host depends on it.
-33. **The lobby.** Rewrite `src/net/lobby.ts`, app-agnostic: wake with `/health`, find by `/networks`, join or create at once with one anchor, the beacon, `acceptMerge`, retry, and the anchor's merge check. Test early with a local `npm run signal`: two tabs, then two lobbies made at once that merge into one.
-34. **Host a duel.** Rewrite `src/net/match.ts` on a `Network`: `link` events, `name` messages, the `pose` channel, the ping clock. The host makes the carried duel and the new link in `src/link.ts`, and the QR dialog shows it.
-35. **Join from the link.** The guest's flow in `src/online.ts`: lobby by id or by name, join the invite, "full", "ended" and rehost. Delete `watch` and the 18 s loop. Checked by hand with two browsers: host, guest, ready, a round, a third player, a dead link.
-36. **The lobby under stress.** By hand on the local server: the anchor closes its tab (a newcomer creates a new lobby at once, the drifted part re-anchors and merges into it), the anchor closes while a host waits (the host re-anchors, the old link still works), the server restarts, a merge while a duel is open (does the duel survive?), a guest whose link names a lobby id that changed by a merge (falls back by name). Write down what we find, and tell the owner about any papit bug.
-37. **Clean up.** Remove dead constants from `config.ts`, update the `/version` page checks to `/health` and `/networks`, rewrite the network technical notes above, and strike the papit gaps that 0.1 fixed.
-38. **Roll out, one step.** 0.1 doesn't talk to 0.0.x, so in this order: the owner deploys `@papit/signal-server` 0.1.0 on Render, then `net-0.1` merges to `main` and Pages deploys, then every open tab reloads. Then task 31, the live test, which is the first merge over real WebRTC and the first time on phones.
-
 ### Known limits we accept
 
 - A carried duel doesn't heal a split. If the two lose each other, the game is over, as it is now.
-- A merge over real WebRTC and a busy lobby on Render are untested in papit, so tasks 36 and 38 are where we find out.
+- A merge over real WebRTC and a busy lobby on Render are untested in papit, so tasks 5 and 8 are where we find out.
 - Two players in different parts of a split lobby can't reach each other until the merge. A link that fails in that time reads as a dead link, and the guest rehosts.
