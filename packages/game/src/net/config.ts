@@ -32,3 +32,7 @@ export function httpUrl(signal: string = signalUrl()) {
     url.hash = "";
     return url.toString().replace(/\/$/, "");
 }
+/** ms a guest keeps trying a link whose host doesn't answer. A host sending the link is often in another app, with their tab frozen. */
+export const HOST_WAIT = 120_000;
+/** ms between a guest's tries. */
+export const JOIN_GAP = 3000;

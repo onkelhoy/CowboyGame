@@ -38,6 +38,7 @@
       "wanted": "WANTED"
     },
     "status": {
+      "waitingHost": "Waiting for {name} to answer, they may still be sending the link...",
       "joining": "Joining the duel...",
       "waking": "Waking up the server, a free one needs a moment...",
       "connecting": "Connecting...",

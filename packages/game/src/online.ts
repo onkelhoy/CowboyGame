@@ -9,7 +9,7 @@ import type { Kill } from "./duel/kill";
 import type { Hud } from "./hud";
 import type { Hold } from "./input";
 import { inviteLink, withoutInvite, type Invite } from "./link";
-import { ANCHORS, APP, BEACON, HANDSHAKE_TIMEOUT, HOST_CHECK, LOBBY_NAME, RESCAN, RTC, httpUrl, signalUrl } from "./net/config";
+import { ANCHORS, APP, BEACON, HANDSHAKE_TIMEOUT, HOST_CHECK, HOST_WAIT, JOIN_GAP, LOBBY_NAME, RESCAN, RTC, httpUrl, signalUrl } from "./net/config";
 import { Lobby } from "./net/lobby";
 import { Match } from "./net/match";
 import type { Network } from "@papit/webrtc";
@@ -81,6 +81,8 @@ export class Online {
     private asHost = false;
     private shown = "";
     private watcher: ReturnType<typeof setInterval> | undefined;
+    /** The host's duel id. A duel opened again keeps it, so a link already sent still works. */
+    private duelId = crypto.randomUUID();
 
     constructor(private parts: OnlineParts) {
         this.ui = mountOverlay(parts.hold);
@@ -133,6 +135,7 @@ export class Online {
 
         this.asHost = true;
         this.shown = "";
+        this.duelId = crypto.randomUUID();
         history.replaceState(null, "", withoutInvite(location.href));
         this.ui.note("");
         this.ui.invite.text(words);
@@ -143,23 +146,34 @@ export class Online {
         this.watching();
     }
 
-    /** The guest's way in: the link they were sent. One try, each entry in the invite gets 5 s. */
-    async join({ lobby, invite }: Invite) {
+    /**
+     * The guest's way in: the link they were sent. A host who just sent it is often still in their messages
+     * app with the tab frozen, so a link nobody answers is tried again for `HOST_WAIT` before it's given up.
+     */
+    async join({ lobby, invite, by }: Invite) {
         effect(() => this.status(this.lobby.status()));
         this.ui.note(t("status.joining"));
         await this.lobby.start(lobby);
         if (this.lobby.id !== lobby) console.info("joining from another lobby than the link's", lobby.slice(0, 8));
 
-        try
+        const until = Date.now() + HOST_WAIT;
+        for (;;)
         {
-            const duel = await this.lobby.join(invite, { profile: { name: settings().name } });
-            this.attach(duel, false);
-            this.ui.note("");
-        }
-        catch (error)
-        {
-            console.warn("could not join", error);
-            return failure(error) === "full" ? this.full() : this.rehost(t("invite.ended"));
+            try
+            {
+                const duel = await this.lobby.join(invite, { profile: { name: settings().name } });
+                this.attach(duel, false);
+                this.ui.note("");
+                return;
+            }
+            catch (error)
+            {
+                console.warn("could not join", error);
+                if (failure(error) === "full") return this.full();
+                if (Date.now() >= until) return this.rehost(t("invite.ended"));
+            }
+            this.ui.note(t("status.waitingHost", { name: by || t("invite.friend") }));
+            await wait(JOIN_GAP);
         }
     }
 
@@ -173,7 +187,7 @@ export class Online {
         }, {
             // a third player is turned away
             accept: () => !this.match?.peer,
-        });
+        }, this.duelId);
         this.hosting = true;
         this.attach(duel, true);
         this.link(duel);
@@ -474,6 +488,8 @@ export class Online {
         const hidden = document.hidden;
         this.match?.send(hidden ? "away" : "back");
         this.leaves(0, hidden);
+        // a host back from sending the link: reconnect now, not at the next check
+        if (!hidden) this.watch();
     };
 
     /** A player's tab went away or came back. A hidden one can't decide hits, so the round stops. */

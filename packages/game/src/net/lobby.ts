@@ -89,9 +89,8 @@ export class Lobby {
         throw new Error("closed");
     }
 
-    /** A network carried by the lobby, made here. */
-    create(draft: Parameters<Client["create"]>[0], setup: Omit<NonNullable<Parameters<Client["create"]>[1]>, "bootstrap"> = {}) {
-        const id = crypto.randomUUID();
+    /** A network carried by the lobby, made here. The same `id` again makes an invite to it work again. */
+    create(draft: Parameters<Client["create"]>[0], setup: Omit<NonNullable<Parameters<Client["create"]>[1]>, "bootstrap"> = {}, id: string = crypto.randomUUID()) {
         return this.client.create(draft, { ...setup, bootstrap: new ParentBootstrap(this.need(), id) });
     }
 

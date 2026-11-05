@@ -38,6 +38,7 @@
       "wanted": "EFTERLYST"
     },
     "status": {
+      "waitingHost": "Väntar på att {name} svarar, kanske skickar hen fortfarande länken...",
       "joining": "Går med i duellen...",
       "waking": "Väcker servern, en gratisserver behöver en stund...",
       "connecting": "Ansluter...",
