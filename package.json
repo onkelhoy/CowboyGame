@@ -45,7 +45,7 @@
         "@papit/information": "*",
         "@papit/react": "*",
         "@papit/server": "*",
-        "@papit/signal-server": "^0.1.0",
+        "@papit/signal-server": "^0.1.1",
         "@papit/static": "^0.0.8",
         "@papit/terminal": "*",
         "@papit/version": "*",

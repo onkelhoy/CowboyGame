@@ -176,7 +176,7 @@ Found while reading the code on 2026-11-02, and checked against the release.
 
 ## Papit gaps to report
 
-- **0.1.0, found running it on a local server (report to papit):** a peer whose socket id isn't its peer id can't take joins or merges through the server. `SocketBootstrap.signal` only sends when `socket.me === this.me`, so after any new socket the anchor gets `network.join` through its alias but can't answer, and joins and merges time out. It hits every anchor after a server restart or a socket reconnect, and every peer that anchors later (recruiting, beacon recovery). Seen: after a restart the lobby is listed again but every join times out. A second gap: a peer with no socket can't call `network.anchor()` ("no socket"), and the `Client` only opens one for `anchor-request`. What we do meanwhile: a lobby join gives up after 6 s and makes a new lobby, and the waiting host's re-anchor (`Lobby.keepListed`) is switched off in `online.ts`.
+- **0.1.1 (reported in papit's `COWBOY-FINDINGS.md`):** a lone node that re-anchors after its anchor left is listed again but can't take joins (`lookup … timed out`), likely its chord still routing to the dead anchor. The 0.1.0 socket gaps are fixed in 0.1.1, a server restart works, and the waiting host's re-anchor is back on.
 - `@papit/webrtc` calls `crypto.randomUUID`, which is missing on a page that isn't secure, so plain `http://` throws "not a function" instead of a clear message. A phone on a LAN address hits this too. `views/game/index.html` redirects github.io to https.
 - The server finds assets once at start, so a file added while it runs answers 500 until a restart.
 - No QR or share link component.
