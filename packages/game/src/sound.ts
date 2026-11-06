@@ -15,7 +15,11 @@ const HEARTBEAT = .78;
 const LOUDNESS: Partial<Record<SoundName, number>> = { fly: .35, reload: .2 };
 
 /** The owner's songs, in the root `asset/audio/song/`. A missing one means silence. */
-const SONGS = { menu: "La Tierra Va a Hablar", duel: "Dust and Steel" };
+/** More than one song plays them in turn, starting at a random one. */
+const SONGS: Record<"menu" | "duel", string[]> = {
+    menu: ["La Tierra Va a Hablar"],
+    duel: ["Dust and Steel", "Cara_a_Cara", "Dos_Jinetes"],
+};
 const FADE = 1.2;
 
 export type SongName = keyof typeof SONGS;
@@ -33,8 +37,9 @@ export class Sound {
     private muted = false;
     private dipped = false;
     private wanted: SongName | null = null;
-    private playing: { name: SongName; gain: GainNode; source: AudioBufferSourceNode } | null = null;
-    private songs = new Map<SongName, Promise<AudioBuffer | null>>();
+    private track = 0;
+    private playing: { file: string; gain: GainNode; source: AudioBufferSourceNode } | null = null;
+    private songs = new Map<string, Promise<AudioBuffer | null>>();
 
     /** A browser only starts audio from a tap, so call this from one. */
     unlock() {
@@ -100,6 +105,7 @@ export class Sound {
 
     /** Which song plays, null for none. Before the first tap it waits, then starts. */
     song(name: SongName | null) {
+        if (name !== this.wanted && name) this.track = Math.floor(Math.random() * SONGS[name].length);
         this.wanted = name;
         void this.mix();
     }
@@ -107,11 +113,13 @@ export class Sound {
     /** Fades the old song out and the wanted one in. */
     private async mix() {
         const { context, music, wanted } = this;
-        if (!context || !music || this.playing?.name === (wanted ?? undefined)) return;
+        const list = wanted ? SONGS[wanted] : [];
+        const file = wanted ? list[this.track % list.length] : null;
+        if (!context || !music || this.playing?.file === (file ?? undefined)) return;
 
-        const buffer = wanted ? await this.fetchSong(wanted) : null;
+        const buffer = file ? await this.fetchSong(file) : null;
         // it can change while the file is loading
-        if (this.wanted !== wanted) return;
+        if (this.wanted !== wanted || (file && list[this.track % list.length] !== file)) return;
 
         const now = context.currentTime;
         const old = this.playing;
@@ -124,25 +132,30 @@ export class Sound {
         }
 
         this.playing = null;
-        if (!wanted || !buffer) return;
+        if (!file || !buffer) return;
 
         const source = context.createBufferSource();
         source.buffer = buffer;
-        source.loop = true;
+        source.loop = list.length === 1;
+        source.onended = () => {
+            if (this.playing?.source !== source) return;
+            this.track++;
+            void this.mix();
+        };
         const gain = context.createGain();
         gain.gain.setValueAtTime(0, now);
         gain.gain.linearRampToValueAtTime(1, now + FADE);
         source.connect(gain).connect(music);
         source.start();
-        this.playing = { name: wanted, gain, source };
+        this.playing = { file, gain, source };
     }
 
-    private fetchSong(name: SongName) {
-        let song = this.songs.get(name);
+    private fetchSong(file: string) {
+        let song = this.songs.get(file);
         if (!song)
         {
-            song = this.decode(`/audio/song/${encodeURIComponent(SONGS[name])}.mp3`);
-            this.songs.set(name, song);
+            song = this.decode(`/audio/song/${encodeURIComponent(file)}.mp3`);
+            this.songs.set(file, song);
         }
         return song;
     }
